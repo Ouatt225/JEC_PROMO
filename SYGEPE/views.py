@@ -18,6 +18,7 @@ from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
 from datetime import date, timedelta
 from functools import wraps
+import io
 import json
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -1475,13 +1476,16 @@ def export_excel_presences(request):
             cell.alignment = Alignment(vertical='center')
 
     _auto_width(ws)
-    response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
     from datetime import datetime as dt
     nom_mois = dt(annee, mois, 1).strftime('%B_%Y')
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
     response['Content-Disposition'] = f'attachment; filename="presences_{nom_mois}.xlsx"'
-    wb.save(response)
     return response
 
 
@@ -1530,11 +1534,14 @@ def export_excel_conges(request):
             cell.alignment = Alignment(vertical='center')
 
     _auto_width(ws)
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
     response = HttpResponse(
+        buffer.getvalue(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     response['Content-Disposition'] = f'attachment; filename="conges_{annee}.xlsx"'
-    wb.save(response)
     return response
 
 
@@ -1578,11 +1585,14 @@ def export_excel_permissions(request):
             cell.alignment = Alignment(vertical='center')
 
     _auto_width(ws)
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
     response = HttpResponse(
+        buffer.getvalue(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     response['Content-Disposition'] = f'attachment; filename="permissions_{annee}.xlsx"'
-    wb.save(response)
     return response
 
 
