@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYGEPE — Changer mon mot de passe</title>
+  <link rel="stylesheet" href="{% static 'SYGEPE/css/style.css' %}">
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- Panneau gauche -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="brand-logo">🔐</div>
+      <h1>SYGEPE</h1>
+      <p class="brand-tagline">Sécurité de votre compte</p>
+      <div class="brand-features">
+        <div class="brand-feature">
+          <div class="brand-feature-icon">🔒</div>
+          <span>Choisissez un mot de passe sécurisé</span>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">🔑</div>
+          <span>Minimum 8 caractères recommandés</span>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">✅</div>
+          <span>Votre session reste active après le changement</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau droit -->
+  <div class="login-right">
+    <div class="login-form">
+
+      <div class="login-form-header">
+        <h2>Changer mon mot de passe</h2>
+        <p>Renseignez votre mot de passe actuel puis le nouveau</p>
+      </div>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'success' }}">
+            {% if message.tags == 'success' %}✅{% else %}❌{% endif %} {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- Mot de passe actuel -->
+        <div class="login-input-group">
+          <label for="id_old_password">Mot de passe actuel</label>
+          <div class="login-input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" name="old_password" id="id_old_password"
+                   placeholder="Votre mot de passe actuel" required autocomplete="current-password">
+          </div>
+          {% if form.old_password.errors %}
+            <div style="color:#EF4444;font-size:0.78rem;margin-top:4px;">{{ form.old_password.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Nouveau mot de passe -->
+        <div class="login-input-group">
+          <label for="id_new_password1">Nouveau mot de passe</label>
+          <div class="login-input-wrapper">
+            <span class="input-icon">🔑</span>
+            <input type="password" name="new_password1" id="id_new_password1"
+                   placeholder="Votre nouveau mot de passe" required autocomplete="new-password">
+          </div>
+          {% if form.new_password1.errors %}
+            <div style="color:#EF4444;font-size:0.78rem;margin-top:4px;">{{ form.new_password1.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Confirmation -->
+        <div class="login-input-group">
+          <label for="id_new_password2">Confirmer le nouveau mot de passe</label>
+          <div class="login-input-wrapper">
+            <span class="input-icon">🔑</span>
+            <input type="password" name="new_password2" id="id_new_password2"
+                   placeholder="Retapez le nouveau mot de passe" required autocomplete="new-password">
+          </div>
+          {% if form.new_password2.errors %}
+            <div style="color:#EF4444;font-size:0.78rem;margin-top:4px;">{{ form.new_password2.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+          <div style="color:#EF4444;font-size:0.82rem;margin-bottom:12px;">
+            {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <button type="submit" class="login-btn">
+          Enregistrer le nouveau mot de passe &rarr;
+        </button>
+      </form>
+
+      <div style="text-align:center; margin-top:20px;">
+        <a href="{% url 'profil' %}" style="color:var(--primary);font-size:0.85rem;text-decoration:none;font-weight:600;">
+          ← Retour au profil
+        </a>
+      </div>
+
+      <p style="text-align:center; margin-top:24px; color:var(--text-light); font-size:0.75rem;">
+        &copy; {% now "Y" %} SYGEPE &mdash; Gestion du Personnel
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script src="{% static 'SYGEPE/js/main.js' %}"></script>
+</body>
+</html>

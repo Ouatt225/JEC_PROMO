@@ -1,0 +1,204 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Congés{% endblock %}
+{% block page_title %}Congés{% endblock %}
+{% block page_subtitle %}Gestion des demandes de congé{% endblock %}
+
+{% block content %}
+
+<div class="filter-bar">
+  <form method="get" style="display: flex; gap: 12px; flex: 1; align-items: center; flex-wrap: wrap;">
+    <select name="statut" class="form-control" style="width: auto; min-width: 160px;">
+      <option value="">Tous les statuts</option>
+      <option value="en_attente" {% if statut_selectionne == 'en_attente' %}selected{% endif %}>En attente</option>
+      <option value="approuve"   {% if statut_selectionne == 'approuve'   %}selected{% endif %}>Approuvé</option>
+      <option value="refuse"     {% if statut_selectionne == 'refuse'     %}selected{% endif %}>Refusé</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Filtrer</button>
+    <a href="{% url 'liste_conges' %}" class="btn btn-outline">Réinitialiser</a>
+  </form>
+  <a href="{% url 'demander_conge' %}" class="btn btn-primary">+ Demander un congé</a>
+</div>
+
+<div class="table-card">
+  {% if conges %}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Employé</th>
+          <th>Type</th>
+          <th>Début</th>
+          <th>Fin</th>
+          <th>Durée</th>
+          <th>Motif</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in conges %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="emp-avatar">{{ c.employe.prenom|first }}{{ c.employe.nom|first }}</div>
+              <strong>{{ c.employe.get_full_name }}</strong>
+            </div>
+          </td>
+          <td>{{ c.get_type_conge_display }}</td>
+          <td>{{ c.date_debut|date:"d/m/Y" }}</td>
+          <td>{{ c.date_fin|date:"d/m/Y" }}</td>
+          <td>{{ c.nb_jours }} jour{{ c.nb_jours|pluralize }}</td>
+          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.motif }}</td>
+          <td><span class="badge-status badge-{{ c.statut }}">{{ c.get_statut_display }}</span></td>
+          <td>
+            {% if c.statut == 'en_attente' %}
+            <div style="display:flex;gap:6px;">
+              <!-- Bouton Approuver -->
+              <button type="button"
+                onclick="ouvrirModal({{ c.pk }}, 'approuve', '{{ c.employe.get_full_name|escapejs }}')"
+                style="display:flex;align-items:center;gap:5px;padding:6px 12px;
+                       border-radius:6px;border:1.5px solid #10B981;background:#ECFDF5;
+                       color:#065F46;font-weight:600;font-size:0.78rem;cursor:pointer;
+                       transition:all .15s;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Approuver
+              </button>
+              <!-- Bouton Rejeter -->
+              <button type="button"
+                onclick="ouvrirModal({{ c.pk }}, 'refuse', '{{ c.employe.get_full_name|escapejs }}')"
+                style="display:flex;align-items:center;gap:5px;padding:6px 12px;
+                       border-radius:6px;border:1.5px solid #EF4444;background:#FEF2F2;
+                       color:#991B1B;font-weight:600;font-size:0.78rem;cursor:pointer;
+                       transition:all .15s;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Rejeter
+              </button>
+            </div>
+            {% else %}
+              {% if c.statut == 'approuve' %}
+                <span style="color:#065F46;font-size:0.8rem;font-weight:600;">✔ Approuvé</span>
+              {% elif c.statut == 'refuse' %}
+                <span style="color:#991B1B;font-size:0.8rem;font-weight:600;">✘ Rejeté</span>
+              {% else %}
+                <span style="color:var(--text-muted);font-size:0.8rem;">Traité</span>
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🏖️</div>
+    <p>Aucune demande de congé. <a href="{% url 'demander_conge' %}" style="color:var(--primary);">Faire une demande</a></p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── MODALE DE DÉCISION ──────────────────────────────── -->
+<div id="decision-modal"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;
+         align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:32px;max-width:440px;width:92%;
+              box-shadow:0 24px 64px rgba(0,0,0,.25);">
+
+    <!-- En-tête -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div id="modal-icon"
+        style="width:44px;height:44px;border-radius:50%;display:flex;
+               align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;"></div>
+      <div>
+        <div id="modal-title" style="font-weight:700;font-size:1rem;"></div>
+        <div id="modal-employee" style="font-size:0.82rem;color:#6B7280;margin-top:2px;"></div>
+      </div>
+    </div>
+
+    <!-- Formulaire POST caché -->
+    <form id="decision-form" method="post" action="">
+      {% csrf_token %}
+      <input type="hidden" name="statut" id="modal-statut" value="">
+
+      <div style="margin-bottom:20px;">
+        <label style="font-weight:600;font-size:0.88rem;display:block;margin-bottom:8px;">
+          Commentaire
+          <span style="font-weight:400;color:#9CA3AF;">(optionnel)</span>
+        </label>
+        <textarea name="commentaire_valideur" id="modal-commentaire" rows="3"
+          placeholder="Ajoutez un commentaire pour l'agent..."
+          style="width:100%;padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:8px;
+                 font-size:0.88rem;resize:vertical;outline:none;box-sizing:border-box;
+                 transition:border-color .2s;"
+          onfocus="this.style.borderColor='#7C3AED'"
+          onblur="this.style.borderColor='#E5E7EB'"></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button type="submit" id="modal-confirm-btn"
+          style="flex:1;padding:11px;border-radius:8px;border:none;
+                 font-weight:700;font-size:0.92rem;color:#fff;cursor:pointer;transition:opacity .15s;">
+        </button>
+        <button type="button" onclick="fermerModal()"
+          style="flex:1;padding:11px;border-radius:8px;border:1.5px solid #E5E7EB;
+                 background:transparent;font-size:0.92rem;cursor:pointer;font-weight:600;">
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirModal(pk, decision, nomEmploye) {
+  const isApprove = decision === 'approuve';
+
+  // Action du formulaire  (le placeholder __PK__ est remplacé dynamiquement)
+  document.getElementById('decision-form').action =
+    '{% url "valider_conge" 0 %}'.replace('/0/', '/' + pk + '/');
+  document.getElementById('modal-statut').value    = decision;
+
+  // Icône & couleur
+  const icon = document.getElementById('modal-icon');
+  icon.textContent       = isApprove ? '✅' : '❌';
+  icon.style.background  = isApprove ? '#ECFDF5' : '#FEF2F2';
+
+  // Titre
+  document.getElementById('modal-title').textContent =
+    isApprove ? 'Approuver le congé ?' : 'Rejeter le congé ?';
+  document.getElementById('modal-employee').textContent = nomEmploye;
+
+  // Bouton confirmer
+  const btn = document.getElementById('modal-confirm-btn');
+  btn.textContent       = isApprove ? '✔ Confirmer l\'approbation' : '✘ Confirmer le rejet';
+  btn.style.background  = isApprove ? '#10B981' : '#EF4444';
+
+  // Vider le commentaire précédent
+  document.getElementById('modal-commentaire').value = '';
+
+  // Afficher
+  document.getElementById('decision-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('modal-commentaire').focus(), 100);
+}
+
+function fermerModal() {
+  document.getElementById('decision-modal').style.display = 'none';
+}
+
+// Fermer en cliquant en dehors
+document.getElementById('decision-modal').addEventListener('click', function(e) {
+  if (e.target === this) fermerModal();
+});
+
+// Fermer avec Échap
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') fermerModal();
+});
+</script>
+
+{% endblock %}

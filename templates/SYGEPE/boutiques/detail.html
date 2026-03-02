@@ -1,0 +1,108 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}{{ boutique.nom }}{% endblock %}
+{% block page_title %}{{ boutique.nom }}{% endblock %}
+{% block page_subtitle %}Détails de la boutique{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="detail-header" style="background: linear-gradient(135deg, #F59E0B, #7C3AED);">
+  <div class="detail-avatar" style="font-size: 2.5rem; background: rgba(255,255,255,0.2);">🏪</div>
+  <div class="detail-info">
+    <h2>{{ boutique.nom }}</h2>
+    {% if boutique.description %}<p>{{ boutique.description }}</p>{% endif %}
+    <div class="detail-badges">
+      <span class="detail-badge">👤 {{ boutique.responsable.get_full_name|default:"Aucun responsable" }}</span>
+      <span class="detail-badge">👥 {{ boutique.nb_employes }} employé(s)</span>
+      <span class="detail-badge">📅 Depuis {{ boutique.date_creation|date:"d/m/Y" }}</span>
+    </div>
+  </div>
+  <div style="margin-left: auto; display: flex; gap: 10px;">
+    <a href="{% url 'modifier_boutique' boutique.pk %}" class="btn btn-warning">✏️ Modifier</a>
+    <a href="{% url 'supprimer_boutique' boutique.pk %}" class="btn btn-danger"
+       data-confirm="Supprimer cette boutique définitivement ?">🗑️ Supprimer</a>
+  </div>
+</div>
+
+<!-- Infos et employés -->
+<div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
+
+  <!-- Infos boutique -->
+  <div class="table-card" style="align-self: start;">
+    <div class="table-card-header"><h3>📋 Informations</h3></div>
+    <table>
+      {% if boutique.adresse %}
+      <tr>
+        <td style="color: var(--text-muted); font-size: 0.82rem; padding: 10px 0; border-bottom: 1px solid var(--border);">📍 Adresse</td>
+        <td>{{ boutique.adresse }}</td>
+      </tr>
+      {% endif %}
+      {% if boutique.telephone %}
+      <tr>
+        <td style="color: var(--text-muted); font-size: 0.82rem; padding: 10px 0; border-bottom: 1px solid var(--border);">📞 Téléphone</td>
+        <td>{{ boutique.telephone }}</td>
+      </tr>
+      {% endif %}
+      {% if boutique.email %}
+      <tr>
+        <td style="color: var(--text-muted); font-size: 0.82rem; padding: 10px 0; border-bottom: 1px solid var(--border);">📧 Email</td>
+        <td>{{ boutique.email }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td style="color: var(--text-muted); font-size: 0.82rem; padding: 10px 0;">📅 Créée le</td>
+        <td>{{ boutique.date_creation|date:"d F Y" }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Employés de la boutique -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>👥 Employés de cette boutique ({{ employes.count }})</h3>
+    </div>
+    {% if employes %}
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Employé</th>
+            <th>Matricule</th>
+            <th>Poste</th>
+            <th>Département</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for emp in employes %}
+          <tr data-href="{% url 'detail_employe' emp.pk %}">
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="emp-avatar">{{ emp.prenom|first }}{{ emp.nom|first }}</div>
+                <div class="emp-info">
+                  <strong>{{ emp.get_full_name }}</strong>
+                  <span>{{ emp.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td><code style="background: #F3F4F6; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">{{ emp.matricule }}</code></td>
+            <td>{{ emp.poste }}</td>
+            <td>{{ emp.departement|default:"—" }}</td>
+            <td><span class="badge-status badge-{{ emp.statut }}">{{ emp.get_statut_display }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">👥</div>
+      <p>Aucun employé affecté à cette boutique. <a href="{% url 'liste_employes' %}" style="color: var(--primary);">Gérer les employés</a></p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}{{ titre }}{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+{% block page_subtitle %}Remplissez les informations de la boutique{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <h2>🏪 {{ titre }}</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nom de la boutique *</label>
+        {{ form.nom }}
+        {% if form.nom.errors %}<small style="color: var(--danger);">{{ form.nom.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group full">
+        <label>Responsable</label>
+        {{ form.responsable }}
+      </div>
+      <div class="form-group">
+        <label>Téléphone</label>
+        {{ form.telephone }}
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}<small style="color: var(--danger);">{{ form.email.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group full">
+        <label>Adresse</label>
+        {{ form.adresse }}
+      </div>
+      <div class="form-group full">
+        <label>Description</label>
+        {{ form.description }}
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      <a href="{% url 'liste_boutiques' %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

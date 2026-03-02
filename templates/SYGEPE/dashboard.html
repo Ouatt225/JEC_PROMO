@@ -1,0 +1,234 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Tableau de bord{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+{% block page_subtitle %}Vue d'ensemble — {{ today|date:"l d F Y" }}{% endblock %}
+
+{% block content %}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+
+  <!-- Employés actifs -->
+  <div class="kpi-card amber">
+    <div class="kpi-icon-wrap">
+      <div class="kpi-icon-bg"></div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" data-target="{{ total_employes }}">{{ total_employes }}</div>
+    <div class="kpi-label">Employés actifs</div>
+    <span class="kpi-trend up">↑ Total effectif</span>
+  </div>
+
+  <!-- Présents aujourd'hui -->
+  <div class="kpi-card green">
+    <div class="kpi-icon-wrap">
+      <div class="kpi-icon-bg"></div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" data-target="{{ presences_aujourd_hui }}">{{ presences_aujourd_hui }}</div>
+    <div class="kpi-label">Présents aujourd'hui</div>
+    <span class="kpi-trend up">↑ Présences du jour</span>
+  </div>
+
+  <!-- Congés en attente -->
+  <div class="kpi-card terra">
+    <div class="kpi-icon-wrap">
+      <div class="kpi-icon-bg"></div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" data-target="{{ conges_en_attente }}">{{ conges_en_attente }}</div>
+    <div class="kpi-label">Congés en attente</div>
+    {% if conges_en_attente > 0 %}
+    <span class="kpi-trend down">↓ À traiter</span>
+    {% else %}
+    <span class="kpi-trend up">✓ À jour</span>
+    {% endif %}
+  </div>
+
+  <!-- Permissions en attente -->
+  <div class="kpi-card danger">
+    <div class="kpi-icon-wrap">
+      <div class="kpi-icon-bg"></div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" data-target="{{ permissions_en_attente }}">{{ permissions_en_attente }}</div>
+    <div class="kpi-label">Permissions en attente</div>
+    {% if permissions_en_attente > 0 %}
+    <span class="kpi-trend down">↓ À traiter</span>
+    {% else %}
+    <span class="kpi-trend up">✓ À jour</span>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Charts -->
+<div class="charts-grid">
+  <!-- Présences par mois -->
+  <div class="chart-card">
+    <div class="chart-card-title">
+      <div class="dot"></div>
+      Présences des 6 derniers mois
+    </div>
+    <div style="height: 260px;">
+      <canvas id="chartPresences"
+        data-labels="{{ labels_presences }}"
+        data-values="{{ data_presences }}">
+      </canvas>
+    </div>
+  </div>
+
+  <!-- Employés par département -->
+  <div class="chart-card">
+    <div class="chart-card-title">
+      <div class="dot" style="background: var(--terra);"></div>
+      Employés par département
+    </div>
+    <div style="height: 260px;">
+      <canvas id="chartDepartements"
+        data-labels="{{ labels_dept }}"
+        data-values="{{ data_dept }}">
+      </canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Tableaux récents -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+  <!-- Derniers congés -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>🏖️ Dernières demandes de congé</h3>
+      <a href="{% url 'liste_conges' %}" class="btn btn-outline btn-sm">Voir tout</a>
+    </div>
+    {% if derniers_conges %}
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Employé</th>
+            <th>Type</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for conge in derniers_conges %}
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="emp-avatar">{{ conge.employe.prenom|first }}{{ conge.employe.nom|first }}</div>
+                <div class="emp-info">
+                  <strong>{{ conge.employe.get_full_name }}</strong>
+                  <span>{{ conge.date_debut|date:"d/m/Y" }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ conge.get_type_conge_display }}</td>
+            <td><span class="badge-status badge-{{ conge.statut }}">{{ conge.get_statut_display }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🏖️</div>
+      <p>Aucune demande de congé pour le moment</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Dernières permissions -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>🔖 Dernières permissions</h3>
+      <a href="{% url 'liste_permissions' %}" class="btn btn-outline btn-sm">Voir tout</a>
+    </div>
+    {% if dernieres_permissions %}
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Employé</th>
+            <th>Durée</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for perm in dernieres_permissions %}
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="emp-avatar">{{ perm.employe.prenom|first }}{{ perm.employe.nom|first }}</div>
+                <div class="emp-info">
+                  <strong>{{ perm.employe.get_full_name }}</strong>
+                  <span>{{ perm.date_debut|date:"d/m" }} → {{ perm.date_fin|date:"d/m/Y" }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ perm.nb_jours }} j</td>
+            <td><span class="badge-status badge-{{ perm.statut }}">{{ perm.get_statut_display }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🔖</div>
+      <p>Aucune demande de permission pour le moment</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Effet 3D tilt sur toutes les cartes du dashboard ──────────
+(function() {
+  const SELECTORS = '.kpi-card, .chart-card, .table-card';
+  const MAX_ROT   = { kpi: 12, chart: 6, table: 5 };
+
+  document.querySelectorAll(SELECTORS).forEach(card => {
+    const isKpi   = card.classList.contains('kpi-card');
+    const isChart = card.classList.contains('chart-card');
+    const maxRot  = isKpi ? MAX_ROT.kpi : isChart ? MAX_ROT.chart : MAX_ROT.table;
+
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const cx   = rect.left + rect.width  / 2;
+      const cy   = rect.top  + rect.height / 2;
+      const dx   = (e.clientX - cx) / (rect.width  / 2);
+      const dy   = (e.clientY - cy) / (rect.height / 2);
+      const rotY =  dx * maxRot;
+      const rotX = -dy * maxRot * 0.75;
+      const sc   = isKpi ? 1.04 : 1.02;
+
+      card.style.transform = `perspective(900px) rotateY(${rotY}deg) rotateX(${rotX}deg) scale(${sc})`;
+      card.style.boxShadow = `
+        ${-dx * 12}px ${dy * 12}px 36px rgba(26,14,6,0.14),
+        0 4px 16px rgba(26,14,6,0.06)
+      `;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.boxShadow = '';
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # Authentification
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+
+    # Racine → déconnecte + login
+    path('', views.root_view),
+
+    # Dashboard
+    path('dashboard/', views.dashboard, name='dashboard'),
+
+    # Employés
+    path('employes/', views.liste_employes, name='liste_employes'),
+    path('employes/ajouter/', views.ajouter_employe, name='ajouter_employe'),
+    path('employes/<int:pk>/', views.detail_employe, name='detail_employe'),
+    path('employes/<int:pk>/modifier/', views.modifier_employe, name='modifier_employe'),
+    path('employes/<int:pk>/supprimer/', views.supprimer_employe, name='supprimer_employe'),
+    path('employes/<int:pk>/telecharger/', views.telecharger_profil_employe, name='telecharger_profil_employe'),
+
+    # Présences
+    path('presences/', views.liste_presences, name='liste_presences'),
+    path('presences/marquer/', views.marquer_presence, name='marquer_presence'),
+
+    # Congés
+    path('conges/', views.liste_conges, name='liste_conges'),
+    path('conges/demander/', views.demander_conge, name='demander_conge'),
+    path('conges/<int:pk>/valider/', views.valider_conge, name='valider_conge'),
+
+    # Permissions
+    path('permissions/', views.liste_permissions, name='liste_permissions'),
+    path('permissions/demander/', views.demander_permission, name='demander_permission'),
+    path('permissions/<int:pk>/valider/', views.valider_permission, name='valider_permission'),
+
+    # Profil
+    path('profil/', views.profil, name='profil'),
+    path('profil/modifier/', views.modifier_profil_employe, name='modifier_profil_employe'),
+    path('profil/mot-de-passe/', views.changer_mot_de_passe, name='changer_mot_de_passe'),
+    path('profil/telecharger/', views.telecharger_profil, name='telecharger_profil'),
+
+    # Rapports
+    path('rapports/', views.rapports, name='rapports'),
+    path('rapports/presences/', views.rapport_presences, name='rapport_presences'),
+    path('rapports/conges/', views.rapport_conges, name='rapport_conges'),
+    path('rapports/permissions/', views.rapport_permissions, name='rapport_permissions'),
+    path('rapports/rh-complet/', views.rapport_rh_complet, name='rapport_rh_complet'),
+
+    # API
+    path('api/notifications/conges/', views.api_notifications_conges, name='api_notifications_conges'),
+
+    # Boutiques
+    path('boutiques/', views.liste_boutiques, name='liste_boutiques'),
+    path('boutiques/ajouter/', views.ajouter_boutique, name='ajouter_boutique'),
+    path('boutiques/<int:pk>/', views.detail_boutique, name='detail_boutique'),
+    path('boutiques/<int:pk>/modifier/', views.modifier_boutique, name='modifier_boutique'),
+    path('boutiques/<int:pk>/supprimer/', views.supprimer_boutique, name='supprimer_boutique'),
+]

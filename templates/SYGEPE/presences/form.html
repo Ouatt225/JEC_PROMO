@@ -1,0 +1,46 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Marquer une présence{% endblock %}
+{% block page_title %}Marquer une présence{% endblock %}
+{% block page_subtitle %}Enregistrement de présence{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <h2>📅 Enregistrer une présence</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Employé *</label>
+        {{ form.employe }}
+        {% if form.employe.errors %}<small style="color: var(--danger);">{{ form.employe.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group">
+        <label>Date *</label>
+        {{ form.date }}
+        {% if form.date.errors %}<small style="color: var(--danger);">{{ form.date.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group">
+        <label>Heure d'arrivée</label>
+        {{ form.heure_arrivee }}
+      </div>
+      <div class="form-group">
+        <label>Heure de départ</label>
+        {{ form.heure_depart }}
+      </div>
+      <div class="form-group">
+        <label>Statut *</label>
+        {{ form.statut }}
+      </div>
+      <div class="form-group full">
+        <label>Observation</label>
+        {{ form.observation }}
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      <a href="{% url 'liste_presences' %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

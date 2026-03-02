@@ -1,0 +1,216 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Rapports{% endblock %}
+{% block page_title %}Rapports et Statistiques{% endblock %}
+{% block page_subtitle %}Analyses et données de l'entreprise{% endblock %}
+
+{% block extra_css %}
+.rapport-filter {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 28px; flex-wrap: wrap;
+}
+.rapport-filter label {
+  font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+}
+.rapport-filter select {
+  padding: 8px 14px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 0.85rem;
+  background: white; color: var(--text); cursor: pointer;
+}
+.rapport-filter button {
+  padding: 8px 18px; background: var(--primary); color: white;
+  border: none; border-radius: 8px; font-size: 0.85rem;
+  font-weight: 600; cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.rapport-filter button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ── Grille ── */
+.rapports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+  perspective: 1200px;
+}
+
+/* ── Carte 3D ── */
+.rapport-card {
+  background: white;
+  border-radius: 18px;
+  border-top: 4px solid var(--primary);
+  box-shadow: 0 8px 24px rgba(0,0,0,.09), 0 2px 6px rgba(0,0,0,.05);
+  padding: 32px 28px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 14px;
+  transform-style: preserve-3d;
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+  will-change: transform;
+  cursor: default;
+}
+
+/* ── Icône flottante (effet profondeur) ── */
+.rapport-card-icon {
+  font-size: 2.8rem;
+  transform: translateZ(20px);
+  transition: transform 0.12s ease-out;
+  display: block;
+}
+.rapport-card h3 {
+  font-size: 1.08rem; font-weight: 700;
+  color: var(--text); margin: 0;
+  transform: translateZ(10px);
+}
+.rapport-card p {
+  font-size: 0.85rem; color: var(--text-muted); margin: 0; flex: 1;
+}
+
+/* ── Bouton TÉLÉCHARGER ── */
+.rapport-card .btn-dl {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--primary); color: white;
+  padding: 11px 26px; border-radius: 30px;
+  font-size: 0.83rem; font-weight: 700;
+  text-decoration: none; letter-spacing: .6px;
+  margin-top: 8px;
+  transform: translateZ(16px);
+  transition: transform 0.2s cubic-bezier(.34,1.56,.64,1),
+              box-shadow 0.2s ease,
+              background 0.2s ease;
+  box-shadow: 0 4px 14px rgba(26,14,6,0.22);
+}
+.rapport-card .btn-dl:hover {
+  transform: translateZ(16px) scale(1.18);
+  box-shadow: 0 8px 24px rgba(26,14,6,0.35);
+  background: var(--espresso-lt);
+}
+.rapport-card .btn-dl svg {
+  width: 16px; height: 16px; stroke: white;
+  fill: none; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- Sélecteur de période -->
+<form method="get" class="rapport-filter" id="filterForm">
+  <label>Période :</label>
+  <select name="mois" id="mois">
+    {% for num, nom in mois_liste %}
+    <option value="{{ num }}" {% if num == mois_courant %}selected{% endif %}>{{ nom }}</option>
+    {% endfor %}
+  </select>
+  <select name="annee" id="annee">
+    {% for a in annees %}
+    <option value="{{ a }}" {% if a == annee_courante %}selected{% endif %}>{{ a }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Appliquer</button>
+</form>
+
+<!-- Grille de cartes -->
+<div class="rapports-grid">
+
+  <!-- Rapport de Présence -->
+  <div class="rapport-card">
+    <div class="rapport-card-icon">📅</div>
+    <h3>Rapport de Présence</h3>
+    <p>Statistiques mensuelles des présences par employé</p>
+    <a href="{% url 'rapport_presences' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-presences">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      TÉLÉCHARGER
+    </a>
+  </div>
+
+  <!-- Rapport des Congés -->
+  <div class="rapport-card">
+    <div class="rapport-card-icon">🏖️</div>
+    <h3>Rapport des Congés</h3>
+    <p>Analyse des demandes de congés du mois</p>
+    <a href="{% url 'rapport_conges' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-conges">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      TÉLÉCHARGER
+    </a>
+  </div>
+
+  <!-- Rapport des Permissions -->
+  <div class="rapport-card">
+    <div class="rapport-card-icon">🔖</div>
+    <h3>Rapport des Permissions</h3>
+    <p>Analyse des demandes de permission du mois</p>
+    <a href="{% url 'rapport_permissions' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-permissions">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      TÉLÉCHARGER
+    </a>
+  </div>
+
+  <!-- Rapport RH Complet -->
+  <div class="rapport-card">
+    <div class="rapport-card-icon">📊</div>
+    <h3>Rapport RH Complet</h3>
+    <p>Synthèse mensuelle complète : présences, congés, permissions</p>
+    <a href="{% url 'rapport_rh_complet' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-rh">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      TÉLÉCHARGER
+    </a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const URLS = {
+  presences:   "{% url 'rapport_presences' %}",
+  conges:      "{% url 'rapport_conges' %}",
+  permissions: "{% url 'rapport_permissions' %}",
+  rh:          "{% url 'rapport_rh_complet' %}",
+};
+
+function majLiens() {
+  const mois  = document.getElementById('mois').value;
+  const annee = document.getElementById('annee').value;
+  const params = `?mois=${mois}&annee=${annee}`;
+  document.getElementById('link-presences').href   = URLS.presences   + params;
+  document.getElementById('link-conges').href      = URLS.conges      + params;
+  document.getElementById('link-permissions').href = URLS.permissions + params;
+  document.getElementById('link-rh').href          = URLS.rh          + params;
+}
+
+// Mise à jour immédiate dès que la sélection change
+document.getElementById('mois').addEventListener('change', majLiens);
+document.getElementById('annee').addEventListener('change', majLiens);
+
+// "Appliquer" recharge la page avec les nouveaux paramètres
+document.getElementById('filterForm').addEventListener('submit', function() {
+  // comportement normal — pas de preventDefault
+});
+
+// ── Effet 3D tilt sur les cartes ──────────────────────────────
+document.querySelectorAll('.rapport-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const cx   = rect.left + rect.width  / 2;
+    const cy   = rect.top  + rect.height / 2;
+    const dx   = (e.clientX - cx) / (rect.width  / 2);  // -1 à 1
+    const dy   = (e.clientY - cy) / (rect.height / 2);  // -1 à 1
+    const rotY =  dx * 10;   // max 10° gauche/droite
+    const rotX = -dy *  8;   // max  8° haut/bas
+
+    card.style.transform  = `perspective(900px) rotateY(${rotY}deg) rotateX(${rotX}deg) scale(1.03)`;
+    card.style.boxShadow  = `
+      ${-dx * 14}px ${dy * 14}px 40px rgba(0,0,0,0.13),
+       0 8px 24px rgba(0,0,0,0.07)
+    `;
+  });
+
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+    card.style.boxShadow = '';
+  });
+});
+</script>
+{% endblock %}

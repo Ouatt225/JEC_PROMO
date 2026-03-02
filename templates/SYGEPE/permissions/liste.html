@@ -1,0 +1,72 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Permissions{% endblock %}
+{% block page_title %}Permissions{% endblock %}
+{% block page_subtitle %}Gestion des demandes de permission{% endblock %}
+
+{% block content %}
+
+<div class="filter-bar">
+  <form method="get" style="display: flex; gap: 12px; flex: 1; align-items: center; flex-wrap: wrap;">
+    <select name="statut" class="form-control" style="width: auto; min-width: 160px;">
+      <option value="">Tous les statuts</option>
+      <option value="en_attente" {% if statut_selectionne == 'en_attente' %}selected{% endif %}>En attente</option>
+      <option value="approuve" {% if statut_selectionne == 'approuve' %}selected{% endif %}>Approuvé</option>
+      <option value="refuse" {% if statut_selectionne == 'refuse' %}selected{% endif %}>Refusé</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Filtrer</button>
+    <a href="{% url 'liste_permissions' %}" class="btn btn-outline">Réinitialiser</a>
+  </form>
+  <a href="{% url 'demander_permission' %}" class="btn btn-primary">+ Demander une permission</a>
+</div>
+
+<div class="table-card">
+  {% if permissions %}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Employé</th>
+          <th>Date début</th>
+          <th>Date fin</th>
+          <th>Durée</th>
+          <th>Motif</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in permissions %}
+        <tr>
+          <td>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="emp-avatar">{{ p.employe.prenom|first }}{{ p.employe.nom|first }}</div>
+              <strong>{{ p.employe.get_full_name }}</strong>
+            </div>
+          </td>
+          <td>{{ p.date_debut|date:"d/m/Y" }}</td>
+          <td>{{ p.date_fin|date:"d/m/Y" }}</td>
+          <td>{{ p.nb_jours }} j</td>
+          <td style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.motif }}</td>
+          <td><span class="badge-status badge-{{ p.statut }}">{{ p.get_statut_display }}</span></td>
+          <td>
+            {% if p.statut == 'en_attente' %}
+              <a href="{% url 'valider_permission' p.pk %}" class="btn btn-success btn-sm">✔ Valider</a>
+            {% else %}
+              <span style="color: var(--text-muted); font-size: 0.8rem;">Traité</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🔖</div>
+    <p>Aucune demande de permission. <a href="{% url 'demander_permission' %}" style="color: var(--primary);">Faire une demande</a></p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

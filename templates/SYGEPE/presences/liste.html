@@ -1,0 +1,74 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Présences{% endblock %}
+{% block page_title %}Présences{% endblock %}
+{% block page_subtitle %}Suivi quotidien des présences{% endblock %}
+
+{% block content %}
+
+<form method="get" class="filter-bar">
+  <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px; margin: 0;">
+    <label style="white-space: nowrap; font-size: 0.82rem; color: var(--text-muted);">Date :</label>
+    <input type="date" name="date" value="{{ date_filtre }}" class="form-control" style="width: auto;">
+  </div>
+
+  <select name="employe" class="form-control" style="width: auto; min-width: 200px;">
+    <option value="">Tous les employés</option>
+    {% for emp in employes %}
+    <option value="{{ emp.pk }}" {% if employe_selectionne == emp.pk|stringformat:"s" %}selected{% endif %}>{{ emp.get_full_name }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit" class="btn btn-primary">Filtrer</button>
+  <a href="{% url 'liste_presences' %}" class="btn btn-outline">Réinitialiser</a>
+
+  <div style="margin-left: auto;">
+    <a href="{% url 'marquer_presence' %}" class="btn btn-success">+ Marquer présence</a>
+  </div>
+</form>
+
+<div class="table-card">
+  {% if presences %}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Employé</th>
+          <th>Date</th>
+          <th>Arrivée</th>
+          <th>Départ</th>
+          <th>Statut</th>
+          <th>Observation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in presences %}
+        <tr>
+          <td>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="emp-avatar">{{ p.employe.prenom|first }}{{ p.employe.nom|first }}</div>
+              <div class="emp-info">
+                <strong>{{ p.employe.get_full_name }}</strong>
+                <span>{{ p.employe.poste }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ p.date|date:"d/m/Y" }}</td>
+          <td>{{ p.heure_arrivee|default:"—" }}</td>
+          <td>{{ p.heure_depart|default:"—" }}</td>
+          <td><span class="badge-status badge-{{ p.statut }}">{{ p.get_statut_display }}</span></td>
+          <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ p.observation|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📅</div>
+    <p>Aucune présence pour ce filtre. <a href="{% url 'marquer_presence' %}" style="color: var(--primary);">Marquer une présence</a></p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

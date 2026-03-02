@@ -1,0 +1,58 @@
+{% extends 'SYGEPE/base_employe.html' %}
+
+{% block title %}Demander une permission{% endblock %}
+{% block page_title %}Demander une permission{% endblock %}
+{% block page_subtitle %}Soumettre une nouvelle demande de permission{% endblock %}
+
+{% block content %}
+<div class="ec-section" style="max-width: 680px;">
+  <div class="ec-section-header">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Nouvelle demande de permission
+  </div>
+
+  <div class="ec-form-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="ec-form-grid">
+
+        <!-- Date début -->
+        <div class="ec-form-group">
+          <label class="ec-form-label">{{ form.date_debut.label }}</label>
+          <input type="date" name="{{ form.date_debut.html_name }}"
+                 value="{{ form.date_debut.value|default:'' }}"
+                 class="ec-form-control" required>
+          {% if form.date_debut.errors %}<div class="ec-form-error">{{ form.date_debut.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- Date fin -->
+        <div class="ec-form-group">
+          <label class="ec-form-label">{{ form.date_fin.label }}</label>
+          <input type="date" name="{{ form.date_fin.html_name }}"
+                 value="{{ form.date_fin.value|default:'' }}"
+                 class="ec-form-control" required>
+          {% if form.date_fin.errors %}<div class="ec-form-error">{{ form.date_fin.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- Motif (pleine largeur) -->
+        <div class="ec-form-group full">
+          <label class="ec-form-label">{{ form.motif.label }}</label>
+          <textarea name="{{ form.motif.html_name }}" class="ec-form-control" required
+                    placeholder="Décrivez le motif de votre demande...">{{ form.motif.value|default:'' }}</textarea>
+          {% if form.motif.errors %}<div class="ec-form-error">{{ form.motif.errors|join:", " }}</div>{% endif %}
+        </div>
+
+      </div>
+
+      <div class="ec-form-actions">
+        <button type="submit" class="ec-btn-primary">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Soumettre ma demande
+        </button>
+        <a href="{% url 'liste_permissions' %}" class="ec-btn-outline">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

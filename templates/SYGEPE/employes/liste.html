@@ -1,0 +1,97 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Liste des employés{% endblock %}
+{% block page_title %}Employés{% endblock %}
+{% block page_subtitle %}Gestion du personnel — {{ employes.count }} employé(s) trouvé(s){% endblock %}
+
+{% block content %}
+
+<!-- Barre de filtres -->
+<form method="get" class="filter-bar">
+  <div class="search-input-wrapper">
+    <span class="search-icon">🔍</span>
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Rechercher par nom, prénom ou matricule...">
+  </div>
+
+  <select name="departement" class="form-control" style="width: auto; min-width: 180px;">
+    <option value="">Tous les départements</option>
+    {% for dept in departements %}
+    <option value="{{ dept.id }}" {% if dept_selectionne == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.nom }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="statut" class="form-control" style="width: auto; min-width: 130px;">
+    <option value="">Tous les statuts</option>
+    <option value="actif" {% if statut_selectionne == 'actif' %}selected{% endif %}>Actif</option>
+    <option value="inactif" {% if statut_selectionne == 'inactif' %}selected{% endif %}>Inactif</option>
+    <option value="suspendu" {% if statut_selectionne == 'suspendu' %}selected{% endif %}>Suspendu</option>
+  </select>
+
+  <button type="submit" class="btn btn-primary">Filtrer</button>
+  <a href="{% url 'liste_employes' %}" class="btn btn-outline">Réinitialiser</a>
+
+  <div style="margin-left: auto;">
+    <a href="{% url 'ajouter_employe' %}" class="btn btn-primary">+ Ajouter un employé</a>
+  </div>
+</form>
+
+<!-- Tableau -->
+<div class="table-card">
+  {% if employes %}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Employé</th>
+          <th>Matricule</th>
+          <th>Poste</th>
+          <th>Département</th>
+          <th>Date d'embauche</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for emp in employes %}
+        <tr data-href="{% url 'detail_employe' emp.pk %}">
+          <td>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="emp-avatar">
+                {% if emp.photo %}
+                  <img src="{{ emp.photo.url }}" alt="{{ emp.get_full_name }}">
+                {% else %}
+                  {{ emp.prenom|first }}{{ emp.nom|first }}
+                {% endif %}
+              </div>
+              <div class="emp-info">
+                <strong>{{ emp.get_full_name }}</strong>
+                <span>{{ emp.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td><code style="background: #F3F4F6; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">{{ emp.matricule }}</code></td>
+          <td>{{ emp.poste }}</td>
+          <td>{{ emp.departement|default:"—" }}</td>
+          <td>{{ emp.date_embauche|date:"d/m/Y" }}</td>
+          <td><span class="badge-status badge-{{ emp.statut }}">{{ emp.get_statut_display }}</span></td>
+          <td onclick="event.stopPropagation();">
+            <div style="display: flex; gap: 6px;">
+              <a href="{% url 'detail_employe' emp.pk %}" class="btn btn-outline btn-sm" data-tooltip="Voir">👁️</a>
+              <a href="{% url 'modifier_employe' emp.pk %}" class="btn btn-warning btn-sm" data-tooltip="Modifier">✏️</a>
+              <a href="{% url 'supprimer_employe' emp.pk %}" class="btn btn-danger btn-sm" data-tooltip="Supprimer">🗑️</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">👥</div>
+    <p>Aucun employé trouvé. <a href="{% url 'ajouter_employe' %}" style="color: var(--primary);">Ajouter le premier employé</a></p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

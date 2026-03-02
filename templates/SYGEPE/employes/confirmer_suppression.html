@@ -1,0 +1,23 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Supprimer {{ employe.get_full_name }}{% endblock %}
+{% block page_title %}Confirmer la suppression{% endblock %}
+{% block page_subtitle %}Cette action est irréversible{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 500px; text-align: center;">
+  <div style="font-size: 4rem; margin-bottom: 16px;">⚠️</div>
+  <h2 style="color: var(--danger); margin-bottom: 12px;">Supprimer l'employé</h2>
+  <p style="color: var(--text-muted); margin-bottom: 24px;">
+    Vous êtes sur le point de supprimer définitivement <strong>{{ employe.get_full_name }}</strong> ({{ employe.matricule }}).
+    Toutes ses données (présences, congés, permissions) seront également supprimées.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-actions" style="justify-content: center;">
+      <button type="submit" class="btn btn-danger">🗑️ Oui, supprimer</button>
+      <a href="{% url 'detail_employe' employe.pk %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

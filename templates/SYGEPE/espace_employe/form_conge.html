@@ -1,0 +1,95 @@
+{% extends 'SYGEPE/base_employe.html' %}
+
+{% block title %}Demander un congé{% endblock %}
+{% block page_title %}Demander un congé{% endblock %}
+{% block page_subtitle %}Soumettre une nouvelle demande de congé{% endblock %}
+
+{% block content %}
+<div class="ec-section" style="max-width: 680px;">
+  <div class="ec-section-header">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Nouvelle demande de congé
+  </div>
+
+  <div class="ec-form-body">
+
+    <!-- Compteur de congés payés -->
+    <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:140px; background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px 16px; text-align:center;">
+        <div style="font-size:1.6rem; font-weight:700; color:#2E7D32;">{{ solde_conge }}</div>
+        <div style="font-size:0.78rem; color:#388E3C; margin-top:2px;">Jours disponibles {{ annee }}</div>
+      </div>
+      <div style="flex:1; min-width:140px; background:#fff3e0; border:1px solid #ffcc80; border-radius:8px; padding:12px 16px; text-align:center;">
+        <div style="font-size:1.6rem; font-weight:700; color:#E65100;">{{ jours_pris }}</div>
+        <div style="font-size:0.78rem; color:#F57C00; margin-top:2px;">Jours utilisés {{ annee }}</div>
+      </div>
+      <div style="flex:1; min-width:140px; background:#f5f5f5; border:1px solid #ddd; border-radius:8px; padding:12px 16px; text-align:center;">
+        <div style="font-size:1.6rem; font-weight:700; color:#555;">30</div>
+        <div style="font-size:0.78rem; color:#777; margin-top:2px;">Quota annuel total</div>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div style="background:#fff3e0; border-left:4px solid #E65100; padding:10px 14px; border-radius:4px; margin-bottom:14px; color:#b71c1c; font-size:0.9rem;">
+        {% for error in form.non_field_errors %}
+          <div>⚠ {{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="ec-form-grid">
+
+        <!-- Type de congé -->
+        <div class="ec-form-group">
+          <label class="ec-form-label">{{ form.type_conge.label }}</label>
+          <select name="{{ form.type_conge.html_name }}" class="ec-form-control" required>
+            <option value="">-- Sélectionner --</option>
+            {% for val, lbl in form.type_conge.field.choices %}
+            <option value="{{ val }}" {% if form.type_conge.value == val %}selected{% endif %}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+          {% if form.type_conge.errors %}<div class="ec-form-error">{{ form.type_conge.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- Date début -->
+        <div class="ec-form-group">
+          <label class="ec-form-label">{{ form.date_debut.label }}</label>
+          <input type="date" name="{{ form.date_debut.html_name }}"
+                 value="{{ form.date_debut.value|default:'' }}"
+                 class="ec-form-control" required>
+          {% if form.date_debut.errors %}<div class="ec-form-error">{{ form.date_debut.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- Date fin -->
+        <div class="ec-form-group">
+          <label class="ec-form-label">{{ form.date_fin.label }}</label>
+          <input type="date" name="{{ form.date_fin.html_name }}"
+                 value="{{ form.date_fin.value|default:'' }}"
+                 class="ec-form-control" required>
+          {% if form.date_fin.errors %}<div class="ec-form-error">{{ form.date_fin.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- Motif (pleine largeur) -->
+        <div class="ec-form-group full">
+          <label class="ec-form-label">{{ form.motif.label }}</label>
+          <textarea name="{{ form.motif.html_name }}" class="ec-form-control" required
+                    placeholder="Décrivez le motif de votre demande...">{{ form.motif.value|default:'' }}</textarea>
+          {% if form.motif.errors %}<div class="ec-form-error">{{ form.motif.errors|join:", " }}</div>{% endif %}
+        </div>
+
+      </div>
+
+      <div class="ec-form-actions">
+        <button type="submit" class="ec-btn-primary">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Soumettre ma demande
+        </button>
+        <a href="{% url 'liste_conges' %}" class="ec-btn-outline">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

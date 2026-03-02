@@ -1,0 +1,54 @@
+# ── Environnement Python ──────────────────
+mon_env/
+env/
+venv/
+.venv/
+ENV/
+
+# ── Bytecode Python ──────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ── Django ───────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# ── Fichiers secrets ─────────────────────
+.env
+.env.*
+secrets.py
+
+# ── Fichiers statiques collectés ─────────
+staticfiles/
+static_root/
+
+# ── Migrations (optionnel — retirez si vous voulez les versionner) ──
+# SYGEPE/migrations/*.py
+# !SYGEPE/migrations/__init__.py
+
+# ── IDE / Éditeurs ───────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Distribution / Build ─────────────────
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# ── Tests & Coverage ─────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ── Jupyter ──────────────────────────────
+.ipynb_checkpoints/

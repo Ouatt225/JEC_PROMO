@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYGEPE — Connexion</title>
+  <link rel="stylesheet" href="{% static 'SYGEPE/css/style.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- ══ Panneau gauche : branding espresso ══ -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="brand-logo">🏢</div>
+      <h1>SYGEPE</h1>
+      <p class="brand-tagline">Système de Gestion du Personnel</p>
+
+      <div class="brand-features">
+        <div class="brand-feature">
+          <div class="brand-feature-icon">👥</div>
+          <span>Gestion complète des employés</span>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">📅</div>
+          <span>Suivi des présences en temps réel</span>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">🏖️</div>
+          <span>Gestion des congés & permissions</span>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">📊</div>
+          <span>Tableau de bord analytique</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Panneau droit : formulaire parchemin ══ -->
+  <div class="login-right">
+    <div class="login-form">
+
+      <div class="login-form-header">
+        <h2>Bon retour !</h2>
+        <p>Connectez-vous pour accéder à votre espace</p>
+      </div>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'error' }}">
+            ❌ {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        <div class="login-input-group">
+          <label for="username">Identifiant</label>
+          <div class="login-input-wrapper">
+            <span class="input-icon">👤</span>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Entrez votre identifiant"
+              required
+              autocomplete="username"
+            >
+          </div>
+        </div>
+
+        <div class="login-input-group">
+          <label for="password">Mot de passe</label>
+          <div class="login-input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Entrez votre mot de passe"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="login-btn">
+          Se connecter &rarr;
+        </button>
+
+        <div style="text-align:center; margin-top:16px;">
+          <a href="{% url 'changer_mot_de_passe' %}"
+             style="color:var(--primary);font-size:0.83rem;text-decoration:none;font-weight:600;">
+            🔑 Changer mon mot de passe
+          </a>
+        </div>
+      </form>
+
+      <p style="text-align:center; margin-top:28px; color:var(--text-light); font-size:0.75rem;">
+        &copy; {% now "Y" %} SYGEPE &mdash; Gestion du Personnel
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script src="{% static 'SYGEPE/js/main.js' %}"></script>
+</body>
+</html>

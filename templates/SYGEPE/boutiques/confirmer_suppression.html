@@ -1,0 +1,23 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Supprimer {{ boutique.nom }}{% endblock %}
+{% block page_title %}Confirmer la suppression{% endblock %}
+{% block page_subtitle %}Cette action est irréversible{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 500px; text-align: center;">
+  <div style="font-size: 4rem; margin-bottom: 16px;">⚠️</div>
+  <h2 style="color: var(--danger); margin-bottom: 12px;">Supprimer la boutique</h2>
+  <p style="color: var(--text-muted); margin-bottom: 24px;">
+    Vous êtes sur le point de supprimer définitivement la boutique <strong>{{ boutique.nom }}</strong>.
+    Les employés affectés à cette boutique ne seront pas supprimés mais seront désaffectés.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-actions" style="justify-content: center;">
+      <button type="submit" class="btn btn-danger">🗑️ Oui, supprimer</button>
+      <a href="{% url 'detail_boutique' boutique.pk %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Valider le congé{% endblock %}
+{% block page_title %}Validation de congé{% endblock %}
+{% block page_subtitle %}Approuver ou rejeter la demande{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 680px; margin: 0 auto;">
+
+  <!-- En-tête employé -->
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:28px;">
+    <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4F46E5);
+                display:flex;align-items:center;justify-content:center;
+                color:#fff;font-weight:700;font-size:1.2rem;flex-shrink:0;">
+      {{ conge.employe.prenom|first|upper }}{{ conge.employe.nom|first|upper }}
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:1.05rem;">{{ conge.employe.get_full_name }}</div>
+      <div style="font-size:0.82rem;color:var(--text-muted);">{{ conge.employe.poste }} — {{ conge.employe.departement|default:"Département non défini" }}</div>
+    </div>
+    <span style="margin-left:auto;background:#FEF3C7;color:#92400E;
+                 padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;">
+      En attente
+    </span>
+  </div>
+
+  <!-- Récap de la demande -->
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+              padding:20px;margin-bottom:28px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:0.88rem;">
+      <div>
+        <span style="color:var(--text-muted);font-size:0.75rem;font-weight:600;display:block;margin-bottom:3px;">TYPE DE CONGÉ</span>
+        <span style="font-weight:600;">{{ conge.get_type_conge_display }}</span>
+      </div>
+      <div>
+        <span style="color:var(--text-muted);font-size:0.75rem;font-weight:600;display:block;margin-bottom:3px;">DURÉE</span>
+        <span style="font-weight:600;">{{ conge.nb_jours }} jour{{ conge.nb_jours|pluralize }}</span>
+      </div>
+      <div>
+        <span style="color:var(--text-muted);font-size:0.75rem;font-weight:600;display:block;margin-bottom:3px;">DATE DÉBUT</span>
+        <span>{{ conge.date_debut|date:"d/m/Y" }}</span>
+      </div>
+      <div>
+        <span style="color:var(--text-muted);font-size:0.75rem;font-weight:600;display:block;margin-bottom:3px;">DATE FIN</span>
+        <span>{{ conge.date_fin|date:"d/m/Y" }}</span>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:0.88rem;">
+      <span style="color:var(--text-muted);font-size:0.75rem;font-weight:600;display:block;margin-bottom:5px;">MOTIF</span>
+      {{ conge.motif }}
+    </div>
+    <div style="margin-top:10px;font-size:0.78rem;color:var(--text-muted);">
+      Demande soumise le {{ conge.date_demande|date:"d/m/Y à H:i" }}
+    </div>
+  </div>
+
+  <!-- Formulaire -->
+  <form method="post" id="validation-form">
+    {% csrf_token %}
+    <input type="hidden" name="statut" id="statut-hidden" value="">
+
+    <div class="form-group" style="margin-bottom:28px;">
+      <label style="font-weight:600;margin-bottom:8px;display:block;">
+        Commentaire
+        <span style="font-weight:400;color:var(--text-muted);font-size:0.82rem;">(optionnel)</span>
+      </label>
+      {{ form.commentaire_valideur }}
+    </div>
+
+    <!-- Deux boutons de décision -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+
+      <button type="button" id="btn-approuver"
+        onclick="confirmerDecision('approuve', 'Approuver ce congé ?', 'La demande sera marquée comme approuvée.')"
+        style="display:flex;align-items:center;justify-content:center;gap:10px;
+               padding:16px;border-radius:10px;border:2px solid #10B981;
+               background:#ECFDF5;color:#065F46;font-weight:700;font-size:1rem;
+               cursor:pointer;transition:all .2s;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Approuver
+      </button>
+
+      <button type="button" id="btn-rejeter"
+        onclick="confirmerDecision('refuse', 'Rejeter ce congé ?', 'La demande sera marquée comme rejetée.')"
+        style="display:flex;align-items:center;justify-content:center;gap:10px;
+               padding:16px;border-radius:10px;border:2px solid #EF4444;
+               background:#FEF2F2;color:#991B1B;font-weight:700;font-size:1rem;
+               cursor:pointer;transition:all .2s;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Rejeter
+      </button>
+
+    </div>
+
+    <div style="text-align:center;">
+      <a href="{% url 'liste_conges' %}" class="btn btn-outline" style="font-size:0.88rem;">
+        ← Retour à la liste
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Modal de confirmation -->
+<div id="confirm-modal"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
+         align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:32px;max-width:400px;width:90%;
+              box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center;">
+    <div id="modal-icon" style="font-size:2.5rem;margin-bottom:12px;"></div>
+    <h3 id="modal-title" style="margin:0 0 8px;font-size:1.1rem;"></h3>
+    <p id="modal-body" style="color:var(--text-muted);font-size:0.9rem;margin:0 0 24px;"></p>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button id="modal-confirm" onclick="soumettre()"
+        style="padding:10px 28px;border-radius:8px;border:none;
+               font-weight:700;font-size:0.95rem;cursor:pointer;color:#fff;">
+        Confirmer
+      </button>
+      <button onclick="fermerModal()"
+        style="padding:10px 24px;border-radius:8px;border:1px solid var(--border);
+               background:transparent;font-size:0.95rem;cursor:pointer;">
+        Annuler
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let decisionEnCours = '';
+
+function confirmerDecision(decision, titre, corps) {
+  decisionEnCours = decision;
+  document.getElementById('modal-title').textContent = titre;
+  document.getElementById('modal-body').textContent  = corps;
+
+  const icon    = document.getElementById('modal-icon');
+  const confirm = document.getElementById('modal-confirm');
+
+  if (decision === 'approuve') {
+    icon.textContent      = '✅';
+    confirm.style.background = '#10B981';
+  } else {
+    icon.textContent      = '❌';
+    confirm.style.background = '#EF4444';
+  }
+
+  const modal = document.getElementById('confirm-modal');
+  modal.style.display = 'flex';
+}
+
+function fermerModal() {
+  document.getElementById('confirm-modal').style.display = 'none';
+  decisionEnCours = '';
+}
+
+function soumettre() {
+  document.getElementById('statut-hidden').value = decisionEnCours;
+  document.getElementById('validation-form').submit();
+}
+
+/* Fermer en cliquant hors de la modal */
+document.getElementById('confirm-modal').addEventListener('click', function(e) {
+  if (e.target === this) fermerModal();
+});
+
+/* Survol des boutons */
+document.getElementById('btn-approuver').addEventListener('mouseover', function() {
+  this.style.background = '#10B981';
+  this.style.color = '#fff';
+});
+document.getElementById('btn-approuver').addEventListener('mouseout', function() {
+  this.style.background = '#ECFDF5';
+  this.style.color = '#065F46';
+});
+document.getElementById('btn-rejeter').addEventListener('mouseover', function() {
+  this.style.background = '#EF4444';
+  this.style.color = '#fff';
+});
+document.getElementById('btn-rejeter').addEventListener('mouseout', function() {
+  this.style.background = '#FEF2F2';
+  this.style.color = '#991B1B';
+});
+</script>
+{% endblock %}
