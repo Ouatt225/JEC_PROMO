@@ -21,6 +21,7 @@ media/
 # ── Fichiers secrets ─────────────────────
 .env
 .env.*
+!.env.example
 secrets.py
 
 # ── Fichiers statiques collectés ─────────
