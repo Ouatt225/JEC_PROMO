@@ -130,6 +130,17 @@ class Employe(models.Model):
                 self.user.groups.add(grp)
                 User.objects.filter(pk=self.user_id).update(is_staff=False)
 
+    def jours_conge_pris(self, annee, exclude_pk=None):
+        """Retourne le total de jours de congé payé pris ou en attente pour l'année donnée."""
+        qs = self.conges.filter(
+            type_conge='paye',
+            date_debut__year=annee,
+            statut__in=['en_attente', 'approuve'],
+        )
+        if exclude_pk:
+            qs = qs.exclude(pk=exclude_pk)
+        return sum((c.date_fin - c.date_debut).days + 1 for c in qs)
+
     @property
     def age(self):
         if not self.date_naissance:

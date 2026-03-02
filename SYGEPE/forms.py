@@ -1,6 +1,23 @@
+import os
 from django import forms
 from django.contrib.auth.models import User
 from .models import Employe, Departement, Presence, Conge, Permission, Boutique
+
+PHOTO_MAX_SIZE    = 5 * 1024 * 1024  # 5 Mo
+PHOTO_EXTENSIONS  = {'.jpg', '.jpeg', '.png', '.webp'}
+
+
+def _valider_photo(photo):
+    """Validation commune : taille ≤ 5 Mo et extension JPEG/PNG/WebP."""
+    if photo and hasattr(photo, 'size'):
+        if photo.size > PHOTO_MAX_SIZE:
+            raise forms.ValidationError("La photo ne doit pas dépasser 5 Mo.")
+        ext = os.path.splitext(photo.name)[1].lower()
+        if ext not in PHOTO_EXTENSIONS:
+            raise forms.ValidationError(
+                "Format non supporté. Utilisez JPEG, PNG ou WebP."
+            )
+    return photo
 
 
 class EmployeForm(forms.ModelForm):
@@ -35,6 +52,9 @@ class EmployeForm(forms.ModelForm):
             'statut':             forms.Select(attrs={'class': 'form-control'}),
             'adresse':            forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Adresse complète'}),
         }
+
+    def clean_photo(self):
+        return _valider_photo(self.cleaned_data.get('photo'))
 
 
 class DepartementForm(forms.ModelForm):
@@ -73,41 +93,46 @@ class CongeForm(forms.ModelForm):
         date_debut = cleaned_data.get('date_debut')
         date_fin   = cleaned_data.get('date_fin')
 
-        # Règle générale : date_fin doit être >= date_debut
         if date_debut and date_fin:
+            # Règle 1 : date_fin >= date_debut
             if date_fin < date_debut:
                 raise forms.ValidationError(
                     "La date de fin ne peut pas être antérieure à la date de début."
                 )
 
-        if type_conge == 'paye' and date_debut and date_fin:
-            nb_jours = (date_fin - date_debut).days + 1
-            annee = date_debut.year
-
-            # Calcul des jours déjà utilisés cette année (approuvés ou en attente)
             if self.employe:
-                qs = Conge.objects.filter(
+                # Règle 2 : vérifier le chevauchement avec d'autres congés
+                overlap = Conge.objects.filter(
                     employe=self.employe,
-                    type_conge='paye',
-                    date_debut__year=annee,
                     statut__in=['en_attente', 'approuve'],
+                    date_debut__lte=date_fin,
+                    date_fin__gte=date_debut,
                 )
                 if self.instance.pk:
-                    qs = qs.exclude(pk=self.instance.pk)
-                jours_deja_pris = sum(
-                    (c.date_fin - c.date_debut).days + 1 for c in qs
-                )
-            else:
-                jours_deja_pris = 0
+                    overlap = overlap.exclude(pk=self.instance.pk)
+                if overlap.exists():
+                    c = overlap.first()
+                    raise forms.ValidationError(
+                        f"Cette période chevauche un congé existant "
+                        f"({c.date_debut.strftime('%d/%m/%Y')} → "
+                        f"{c.date_fin.strftime('%d/%m/%Y')}, {c.get_statut_display()})."
+                    )
 
-            total = jours_deja_pris + nb_jours
-            if total > 30:
-                restants = max(0, 30 - jours_deja_pris)
-                raise forms.ValidationError(
-                    f"Quota dépassé : vous avez déjà utilisé {jours_deja_pris} jour(s) "
-                    f"de congé payé en {annee} et vous en demandez {nb_jours} de plus "
-                    f"({total} jours au total). Il vous reste {restants} jour(s) disponible(s)."
-                )
+                # Règle 3 : quota congés payés
+                if type_conge == 'paye':
+                    nb_jours = (date_fin - date_debut).days + 1
+                    jours_deja_pris = self.employe.jours_conge_pris(
+                        date_debut.year, exclude_pk=self.instance.pk or None
+                    )
+                    total = jours_deja_pris + nb_jours
+                    if total > 30:
+                        restants = max(0, 30 - jours_deja_pris)
+                        raise forms.ValidationError(
+                            f"Quota dépassé : vous avez déjà utilisé {jours_deja_pris} jour(s) "
+                            f"de congé payé en {date_debut.year} et vous en demandez {nb_jours} "
+                            f"de plus ({total} jours au total). "
+                            f"Il vous reste {restants} jour(s) disponible(s)."
+                        )
 
         return cleaned_data
 
@@ -139,6 +164,43 @@ class ValidationCongeForm(forms.ModelForm):
 
 
 class PermissionForm(forms.ModelForm):
+
+    def __init__(self, *args, employe=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.employe = employe
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date_debut = cleaned_data.get('date_debut')
+        date_fin   = cleaned_data.get('date_fin')
+
+        if date_debut and date_fin:
+            # Règle 1 : date_fin >= date_debut
+            if date_fin < date_debut:
+                raise forms.ValidationError(
+                    "La date de fin ne peut pas être antérieure à la date de début."
+                )
+
+            # Règle 2 : chevauchement avec d'autres permissions
+            if self.employe:
+                overlap = Permission.objects.filter(
+                    employe=self.employe,
+                    statut__in=['en_attente', 'approuve'],
+                    date_debut__lte=date_fin,
+                    date_fin__gte=date_debut,
+                )
+                if self.instance.pk:
+                    overlap = overlap.exclude(pk=self.instance.pk)
+                if overlap.exists():
+                    p = overlap.first()
+                    raise forms.ValidationError(
+                        f"Cette période chevauche une permission existante "
+                        f"({p.date_debut.strftime('%d/%m/%Y')} → "
+                        f"{p.date_fin.strftime('%d/%m/%Y')}, {p.get_statut_display()})."
+                    )
+
+        return cleaned_data
+
     class Meta:
         model = Permission
         fields = ['date_debut', 'date_fin', 'motif']
@@ -191,6 +253,9 @@ class EmployeProfilForm(forms.ModelForm):
             'adresse':            forms.Textarea(attrs={'class': 'ec-form-control', 'rows': 3, 'placeholder': 'Adresse complète'}),
             'num_cnps':           forms.TextInput(attrs={'class': 'ec-form-control', 'placeholder': 'Numéro CNPS'}),
         }
+
+    def clean_photo(self):
+        return _valider_photo(self.cleaned_data.get('photo'))
 
 
 class BoutiqueForm(forms.ModelForm):

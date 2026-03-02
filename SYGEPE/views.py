@@ -15,6 +15,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django.db.models import Count, Q
+from django.db.models.functions import TruncMonth
 from datetime import date, timedelta
 from functools import wraps
 import json
@@ -30,12 +31,20 @@ from .forms import (
 # ─────────────────────────────────────────────
 # Helpers de rôles
 # ─────────────────────────────────────────────
+def _groupes_utilisateur(user):
+    """Retourne les noms de groupes de l'utilisateur, mis en cache sur l'objet user
+    pour la durée de la requête HTTP (évite les requêtes N+1)."""
+    if not hasattr(user, '_group_names_cache'):
+        user._group_names_cache = set(user.groups.values_list('name', flat=True))
+    return user._group_names_cache
+
+
 def is_admin(user):
-    return user.is_superuser or user.groups.filter(name='Admin').exists()
+    return user.is_superuser or 'Admin' in _groupes_utilisateur(user)
 
 
 def is_rh(user):
-    return user.is_superuser or user.groups.filter(name__in=['Admin', 'RH', 'DAF']).exists()
+    return user.is_superuser or bool(_groupes_utilisateur(user) & {'Admin', 'RH', 'DAF'})
 
 
 def rh_requis(f):
@@ -136,19 +145,28 @@ def dashboard(request):
     conges_en_attente = Conge.objects.filter(statut='en_attente').count()
     permissions_en_attente = Permission.objects.filter(statut='en_attente').count()
 
-    # Présences des 6 derniers mois
-    labels_presences = []
-    data_presences = []
+    # Présences des 6 derniers mois — 1 seule requête SQL avec TruncMonth
+    mois_liste = []
     for i in range(5, -1, -1):
-        mois = today.replace(day=1) - timedelta(days=i * 30)
-        label = mois.strftime('%b %Y')
-        count = Presence.objects.filter(
-            date__year=mois.year,
-            date__month=mois.month,
-            statut='present'
-        ).count()
-        labels_presences.append(label)
-        data_presences.append(count)
+        mois_num  = today.month - i
+        annee_num = today.year
+        while mois_num <= 0:
+            mois_num  += 12
+            annee_num -= 1
+        mois_liste.append(date(annee_num, mois_num, 1))
+
+    debut_periode = mois_liste[0]
+    pres_db = (
+        Presence.objects
+        .filter(statut='present', date__gte=debut_periode)
+        .annotate(mois=TruncMonth('date'))
+        .values('mois')
+        .annotate(nb=Count('id'))
+        .order_by('mois')
+    )
+    pres_dict = {p['mois'].date(): p['nb'] for p in pres_db}
+    labels_presences = [m.strftime('%b %Y') for m in mois_liste]
+    data_presences   = [pres_dict.get(m, 0) for m in mois_liste]
 
     # Employés par département
     depts = Departement.objects.annotate(nb=Count('employes')).filter(nb__gt=0)
@@ -333,20 +351,10 @@ def demander_conge(request):
     except Employe.DoesNotExist:
         employe = None
 
-    # Calcul du quota de congés payés pour l'année en cours
+    # Solde de congés payés pour l'année en cours (affiché dans le formulaire)
     annee = date.today().year
-    solde_conge = 30
-    jours_pris = 0
-    if employe:
-        jours_pris = sum(
-            (c.date_fin - c.date_debut).days + 1
-            for c in employe.conges.filter(
-                type_conge='paye',
-                date_debut__year=annee,
-                statut__in=['en_attente', 'approuve'],
-            )
-        )
-        solde_conge = max(0, 30 - jours_pris)
+    jours_pris  = employe.jours_conge_pris(annee) if employe else 0
+    solde_conge = max(0, 30 - jours_pris)
 
     if request.method == 'POST':
         form = CongeForm(request.POST, employe=employe)
@@ -416,20 +424,24 @@ def liste_permissions(request):
 
 @login_required
 def demander_permission(request):
+    try:
+        employe = request.user.employe
+    except Employe.DoesNotExist:
+        employe = None
+
     if request.method == 'POST':
-        form = PermissionForm(request.POST)
+        form = PermissionForm(request.POST, employe=employe)
         if form.is_valid():
             perm = form.save(commit=False)
-            try:
-                perm.employe = request.user.employe
-            except Employe.DoesNotExist:
+            if not employe:
                 messages.error(request, "Votre profil employé n'existe pas. Contactez l'administrateur.")
                 return redirect('liste_permissions')
+            perm.employe = employe
             perm.save()
             messages.success(request, "Demande de permission soumise avec succès.")
             return redirect('liste_permissions')
     else:
-        form = PermissionForm()
+        form = PermissionForm(employe=employe)
     if not is_rh(request.user):
         return render(request, 'SYGEPE/espace_employe/form_permission.html', {'form': form})
     return render(request, 'SYGEPE/permissions/form.html', {'form': form})
