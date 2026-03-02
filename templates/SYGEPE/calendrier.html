@@ -1,0 +1,117 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Calendrier des congés{% endblock %}
+{% block page_title %}Calendrier{% endblock %}
+{% block page_subtitle %}Congés et permissions — vue mensuelle{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<style>
+.fc-event { cursor: pointer; font-size: .78rem; }
+.fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700; }
+.cal-legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+.cal-legend-item { display: flex; align-items: center; gap: 6px; font-size: .82rem; }
+.cal-legend-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+/* Popup détail */
+#cal-popup {
+  display: none; position: fixed; z-index: 9999;
+  background: white; border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  padding: 18px 20px; min-width: 260px; max-width: 340px;
+}
+#cal-popup h4 { margin: 0 0 8px; font-size: .95rem; }
+#cal-popup p  { margin: 4px 0; font-size: .82rem; color: #4b5563; }
+#cal-popup-close {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; font-size: 1.1rem;
+  cursor: pointer; color: #9ca3af;
+}
+#cal-popup-close:hover { color: #374151; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="table-card">
+
+  <!-- Légende -->
+  <div class="cal-legend">
+    <div class="cal-legend-item">
+      <div class="cal-legend-dot" style="background:#16a34a;"></div>
+      Congé approuvé
+    </div>
+    <div class="cal-legend-item">
+      <div class="cal-legend-dot" style="background:#d97706;"></div>
+      Congé en attente
+    </div>
+    <div class="cal-legend-item">
+      <div class="cal-legend-dot" style="background:#dc2626;"></div>
+      Congé refusé
+    </div>
+    <div class="cal-legend-item">
+      <div class="cal-legend-dot" style="background:#1d4ed8;"></div>
+      Permission
+    </div>
+  </div>
+
+  <div id="calendar"></div>
+</div>
+
+<!-- Popup détail événement -->
+<div id="cal-popup">
+  <button id="cal-popup-close">✕</button>
+  <h4 id="cal-popup-title"></h4>
+  <p id="cal-popup-employe"></p>
+  <p id="cal-popup-dates"></p>
+  <p id="cal-popup-statut"></p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const calEl = document.getElementById('calendar');
+  const popup = document.getElementById('cal-popup');
+
+  const cal = new FullCalendar.Calendar(calEl, {
+    initialView: 'dayGridMonth',
+    locale: 'fr',
+    headerToolbar: {
+      left:   'prev,next today',
+      center: 'title',
+      right:  'dayGridMonth,listMonth',
+    },
+    buttonText: { today: "Aujourd'hui", month: 'Mois', list: 'Liste' },
+    height: 'auto',
+    events: '{% url "api_calendrier_events" %}',
+    eventClick: function (info) {
+      const p  = info.event.extendedProps;
+      const s  = info.event.start;
+      const e  = info.event.end ? new Date(info.event.end.getTime() - 86400000) : s;
+      const fmt = d => d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+      document.getElementById('cal-popup-title').textContent  = info.event.title;
+      document.getElementById('cal-popup-employe').textContent = '👤 ' + p.employe;
+      document.getElementById('cal-popup-dates').textContent  = '📅 ' + fmt(s) + ' → ' + fmt(e);
+      document.getElementById('cal-popup-statut').textContent = '📌 Statut : ' + p.statut;
+
+      // Position relative au curseur
+      const rect = info.el.getBoundingClientRect();
+      popup.style.top  = (rect.bottom + window.scrollY + 8)  + 'px';
+      popup.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 360) + 'px';
+      popup.style.display = 'block';
+      info.jsEvent.stopPropagation();
+    },
+  });
+
+  cal.render();
+
+  document.getElementById('cal-popup-close').addEventListener('click', () => {
+    popup.style.display = 'none';
+  });
+  document.addEventListener('click', e => {
+    if (!popup.contains(e.target)) popup.style.display = 'none';
+  });
+});
+</script>
+{% endblock %}

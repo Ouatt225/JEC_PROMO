@@ -22,7 +22,7 @@
     <span class="kpi-trend up">↑ Total effectif</span>
   </div>
 
-  <!-- Présents aujourd'hui -->
+  <!-- Présents aujourd'hui + taux -->
   <div class="kpi-card green">
     <div class="kpi-icon-wrap">
       <div class="kpi-icon-bg"></div>
@@ -32,7 +32,10 @@
     </div>
     <div class="kpi-value" data-target="{{ presences_aujourd_hui }}">{{ presences_aujourd_hui }}</div>
     <div class="kpi-label">Présents aujourd'hui</div>
-    <span class="kpi-trend up">↑ Présences du jour</span>
+    <div class="kpi-progress-wrap">
+      <div class="kpi-progress-bar" style="width: {{ taux_presence }}%;"></div>
+    </div>
+    <span class="kpi-trend up">{{ taux_presence }}% de présence</span>
   </div>
 
   <!-- Congés en attente -->
@@ -70,6 +73,56 @@
   </div>
 
 </div>
+
+<!-- Ligne 2 KPI : métriques supplémentaires -->
+<div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px;">
+
+  <!-- Absents du jour -->
+  <div class="kpi-card" style="background: linear-gradient(135deg,#fff3e0,#ffe0b2); border-left: 4px solid #fb8c00;">
+    <div style="font-size: 2rem; font-weight: 700; color: #e65100;">{{ absents_aujourd_hui }}</div>
+    <div style="font-size: 0.82rem; color: #bf360c; margin-top: 4px;">Absents enregistrés</div>
+  </div>
+
+  <!-- En congé aujourd'hui -->
+  <div class="kpi-card" style="background: linear-gradient(135deg,#e8f5e9,#c8e6c9); border-left: 4px solid #43a047;">
+    <div style="font-size: 2rem; font-weight: 700; color: #2e7d32;">{{ en_conge_aujourd_hui }}</div>
+    <div style="font-size: 0.82rem; color: #1b5e20; margin-top: 4px;">En congé aujourd'hui</div>
+  </div>
+
+  <!-- En permission aujourd'hui -->
+  <div class="kpi-card" style="background: linear-gradient(135deg,#e3f2fd,#bbdefb); border-left: 4px solid #1e88e5;">
+    <div style="font-size: 2rem; font-weight: 700; color: #1565c0;">{{ en_permission_aujourd_hui }}</div>
+    <div style="font-size: 0.82rem; color: #0d47a1; margin-top: 4px;">En permission aujourd'hui</div>
+  </div>
+
+</div>
+
+<!-- Alertes RH -->
+{% if alertes_anniversaires or conges_en_attente > 3 or permissions_en_attente > 3 %}
+<div class="table-card" style="margin-bottom: 24px; border-left: 4px solid #f59e0b;">
+  <div class="table-card-header">
+    <h3 style="color:#92400e;">⚠️ Alertes RH</h3>
+  </div>
+  <div style="padding: 8px 16px 16px; display: flex; flex-direction: column; gap: 8px;">
+    {% if conges_en_attente > 3 %}
+    <div style="background:#fff3cd; border-radius:8px; padding:10px 14px; color:#856404; font-size:.88rem;">
+      🏖️ <strong>{{ conges_en_attente }} congés</strong> sont en attente de validation — traitement urgent recommandé.
+    </div>
+    {% endif %}
+    {% if permissions_en_attente > 3 %}
+    <div style="background:#fff3cd; border-radius:8px; padding:10px 14px; color:#856404; font-size:.88rem;">
+      🔖 <strong>{{ permissions_en_attente }} permissions</strong> sont en attente de validation.
+    </div>
+    {% endif %}
+    {% for alerte in alertes_anniversaires %}
+    <div style="background:#e0f2fe; border-radius:8px; padding:10px 14px; color:#075985; font-size:.88rem;">
+      🎂 <strong>{{ alerte.employe.get_full_name }}</strong> fête son anniversaire
+      {% if alerte.dans == 0 %}aujourd'hui !{% elif alerte.dans == 1 %}demain.{% else %}dans {{ alerte.dans }} jours ({{ alerte.date|date:"d/m" }}).{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <!-- Charts -->
 <div class="charts-grid">

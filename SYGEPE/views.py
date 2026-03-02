@@ -19,8 +19,11 @@ from django.db.models.functions import TruncMonth
 from datetime import date, timedelta
 from functools import wraps
 import json
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
-from .models import Employe, Departement, Presence, Conge, Permission, Boutique
+from .models import Employe, Departement, Presence, Conge, Permission, Boutique, ActionLog
 from .forms import (
     EmployeForm, EmployeProfilForm, DepartementForm, PresenceForm,
     CongeForm, ValidationCongeForm, PermissionForm, ValidationPermissionForm,
@@ -145,6 +148,28 @@ def dashboard(request):
     conges_en_attente = Conge.objects.filter(statut='en_attente').count()
     permissions_en_attente = Permission.objects.filter(statut='en_attente').count()
 
+    # Taux de présence
+    taux_presence = round(presences_aujourd_hui / total_employes * 100) if total_employes else 0
+
+    # Absents enregistrés aujourd'hui
+    absents_aujourd_hui = Presence.objects.filter(date=today, statut='absent').count()
+
+    # En congé ou permission aujourd'hui (avec présence marquée)
+    en_conge_aujourd_hui = Presence.objects.filter(date=today, statut='conge').count()
+    en_permission_aujourd_hui = Presence.objects.filter(date=today, statut='permission').count()
+
+    # Alertes RH — anniversaires dans les 7 prochains jours
+    alertes_anniversaires = []
+    for i in range(0, 8):
+        jour = today + timedelta(days=i)
+        emps = Employe.objects.filter(
+            statut='actif',
+            date_naissance__month=jour.month,
+            date_naissance__day=jour.day,
+        )
+        for emp in emps:
+            alertes_anniversaires.append({'employe': emp, 'date': jour, 'dans': i})
+
     # Présences des 6 derniers mois — 1 seule requête SQL avec TruncMonth
     mois_liste = []
     for i in range(5, -1, -1):
@@ -182,6 +207,11 @@ def dashboard(request):
         'presences_aujourd_hui': presences_aujourd_hui,
         'conges_en_attente': conges_en_attente,
         'permissions_en_attente': permissions_en_attente,
+        'taux_presence': taux_presence,
+        'absents_aujourd_hui': absents_aujourd_hui,
+        'en_conge_aujourd_hui': en_conge_aujourd_hui,
+        'en_permission_aujourd_hui': en_permission_aujourd_hui,
+        'alertes_anniversaires': alertes_anniversaires,
         'labels_presences': json.dumps(labels_presences),
         'data_presences': json.dumps(data_presences),
         'labels_dept': json.dumps(labels_dept),
@@ -247,7 +277,10 @@ def ajouter_employe(request):
     if request.method == 'POST':
         form = EmployeForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            employe = form.save()
+            _log_action(request, 'employe_ajoute',
+                        f"Ajout de l'employé {employe.get_full_name()} ({employe.matricule})",
+                        employe=employe)
             messages.success(request, "Employé ajouté avec succès.")
             return redirect('liste_employes')
     else:
@@ -365,6 +398,9 @@ def demander_conge(request):
                 return redirect('liste_conges')
             conge.employe = employe
             conge.save()
+            _log_action(request, 'conge_demande',
+                        f"Demande de congé {conge.get_type_conge_display()} du {conge.date_debut} au {conge.date_fin}",
+                        employe=employe)
             messages.success(request, "Demande de congé soumise avec succès.")
             return redirect('liste_conges')
     else:
@@ -391,6 +427,10 @@ def valider_conge(request, pk):
             c.valideur = request.user
             c.date_validation = timezone.now()
             c.save()
+            action_key = 'conge_approuve' if c.statut == 'approuve' else 'conge_refuse'
+            _log_action(request, action_key,
+                        f"Congé de {c.employe.get_full_name()} du {c.date_debut} au {c.date_fin} : {c.get_statut_display()}",
+                        employe=c.employe)
             messages.success(request, f"Congé {c.get_statut_display().lower()}.")
             return redirect('liste_conges')
     else:
@@ -438,6 +478,9 @@ def demander_permission(request):
                 return redirect('liste_permissions')
             perm.employe = employe
             perm.save()
+            _log_action(request, 'permission_demande',
+                        f"Demande de permission du {perm.date_debut} au {perm.date_fin}",
+                        employe=employe)
             messages.success(request, "Demande de permission soumise avec succès.")
             return redirect('liste_permissions')
     else:
@@ -457,6 +500,10 @@ def valider_permission(request, pk):
             p.valideur = request.user
             p.date_validation = timezone.now()
             p.save()
+            action_key = 'permission_approuve' if p.statut == 'approuve' else 'permission_refuse'
+            _log_action(request, action_key,
+                        f"Permission de {p.employe.get_full_name()} du {p.date_debut} au {p.date_fin} : {p.get_statut_display()}",
+                        employe=p.employe)
             messages.success(request, f"Permission {p.get_statut_display().lower()}.")
             return redirect('liste_permissions')
     else:
@@ -479,10 +526,22 @@ def profil(request):
         employe = request.user.employe
     except Employe.DoesNotExist:
         employe = None
+
+    ctx = {'employe': employe}
+
+    # Solde congés payés pour l'employé
+    if employe:
+        annee = date.today().year
+        jours_pris = employe.jours_conge_pris(annee)
+        ctx['solde_conge'] = max(0, 30 - jours_pris)
+        ctx['jours_pris']  = jours_pris
+        ctx['quota_total'] = 30
+        ctx['annee']       = annee
+
     # Employé ordinaire → Espace Contractuel
     if not is_rh(request.user):
-        return render(request, 'SYGEPE/espace_employe/profil.html', {'employe': employe})
-    return render(request, 'SYGEPE/profil.html', {'employe': employe})
+        return render(request, 'SYGEPE/espace_employe/profil.html', ctx)
+    return render(request, 'SYGEPE/profil.html', ctx)
 
 
 @login_required
@@ -1290,3 +1349,265 @@ def api_notifications_conges(request):
             pass
 
     return JsonResponse({'notifications': notifications})
+
+
+# ─────────────────────────────────────────────
+# Calendrier des congés / permissions
+# ─────────────────────────────────────────────
+@rh_requis
+def calendrier_conges(request):
+    """Page calendrier mensuel des congés et permissions."""
+    return render(request, 'SYGEPE/calendrier.html')
+
+
+@rh_requis
+def api_calendrier_events(request):
+    """Endpoint JSON pour FullCalendar : congés + permissions approuvés/en attente."""
+    COULEURS = {
+        'approuve': '#16a34a',
+        'en_attente': '#d97706',
+        'refuse':   '#dc2626',
+        'annule':   '#9ca3af',
+    }
+    events = []
+
+    for conge in Conge.objects.select_related('employe').exclude(statut='annule'):
+        events.append({
+            'id'           : f'conge-{conge.pk}',
+            'title'        : f"🏖 {conge.employe.get_full_name()} ({conge.get_type_conge_display()})",
+            'start'        : conge.date_debut.isoformat(),
+            'end'          : (conge.date_fin + timedelta(days=1)).isoformat(),
+            'backgroundColor': COULEURS.get(conge.statut, '#6b7280'),
+            'borderColor'  : COULEURS.get(conge.statut, '#6b7280'),
+            'extendedProps': {
+                'type'  : 'conge',
+                'statut': conge.get_statut_display(),
+                'employe': conge.employe.get_full_name(),
+            },
+        })
+
+    for perm in Permission.objects.select_related('employe').exclude(statut='annule'):
+        events.append({
+            'id'           : f'perm-{perm.pk}',
+            'title'        : f"🔖 {perm.employe.get_full_name()} (Permission)",
+            'start'        : perm.date_debut.isoformat(),
+            'end'          : (perm.date_fin + timedelta(days=1)).isoformat(),
+            'backgroundColor': '#1d4ed8',
+            'borderColor'  : '#1d4ed8',
+            'extendedProps': {
+                'type'  : 'permission',
+                'statut': perm.get_statut_display(),
+                'employe': perm.employe.get_full_name(),
+            },
+        })
+
+    return JsonResponse(events, safe=False)
+
+
+# ─────────────────────────────────────────────
+# Export Excel
+# ─────────────────────────────────────────────
+
+
+def _style_header_cell(cell):
+    cell.font      = Font(bold=True, color='FFFFFF', size=10)
+    cell.fill      = PatternFill('solid', fgColor='2E7D32')
+    cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    cell.border    = Border(
+        bottom=Side(style='thin', color='FFFFFF'),
+        right=Side(style='thin', color='FFFFFF'),
+    )
+
+
+def _auto_width(ws):
+    for col in ws.columns:
+        max_len = max((len(str(cell.value or '')) for cell in col), default=10)
+        ws.column_dimensions[get_column_letter(col[0].column)].width = min(max_len + 4, 40)
+
+
+@rh_requis
+def export_excel_presences(request):
+    """Exporte les présences filtrées au format Excel (.xlsx)."""
+    mois  = int(request.GET.get('mois',  date.today().month))
+    annee = int(request.GET.get('annee', date.today().year))
+
+    presences = (
+        Presence.objects
+        .filter(date__year=annee, date__month=mois)
+        .select_related('employe', 'enregistre_par')
+        .order_by('date', 'employe__nom')
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Présences'
+    ws.row_dimensions[1].height = 30
+
+    headers = ['Matricule', 'Nom', 'Prénoms', 'Date', 'Heure arrivée', 'Heure départ', 'Statut', 'Observation']
+    for col_idx, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_idx, value=h)
+        _style_header_cell(cell)
+
+    STATUT_FR = {
+        'present': 'Présent', 'absent': 'Absent', 'retard': 'En retard',
+        'conge': 'En congé', 'permission': 'En permission',
+    }
+    for row_idx, p in enumerate(presences, 2):
+        fill = PatternFill('solid', fgColor='F0FFF4') if row_idx % 2 == 0 else PatternFill('solid', fgColor='FFFFFF')
+        data = [
+            p.employe.matricule,
+            p.employe.nom.upper(),
+            p.employe.prenom,
+            p.date.strftime('%d/%m/%Y'),
+            p.heure_arrivee.strftime('%H:%M') if p.heure_arrivee else '—',
+            p.heure_depart.strftime('%H:%M')  if p.heure_depart  else '—',
+            STATUT_FR.get(p.statut, p.statut),
+            p.observation or '',
+        ]
+        for col_idx, val in enumerate(data, 1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.fill      = fill
+            cell.alignment = Alignment(vertical='center')
+
+    _auto_width(ws)
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    from datetime import datetime as dt
+    nom_mois = dt(annee, mois, 1).strftime('%B_%Y')
+    response['Content-Disposition'] = f'attachment; filename="presences_{nom_mois}.xlsx"'
+    wb.save(response)
+    return response
+
+
+@rh_requis
+def export_excel_conges(request):
+    """Exporte les congés au format Excel (.xlsx)."""
+    annee = int(request.GET.get('annee', date.today().year))
+
+    conges = (
+        Conge.objects
+        .filter(date_debut__year=annee)
+        .select_related('employe', 'valideur')
+        .order_by('-date_demande')
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Congés'
+    ws.row_dimensions[1].height = 30
+
+    headers = ['Matricule', 'Nom', 'Prénoms', 'Type congé', 'Date début', 'Date fin', 'Nb jours', 'Statut', 'Motif']
+    for col_idx, h in enumerate(headers, 1):
+        _style_header_cell(ws.cell(row=1, column=col_idx, value=h))
+
+    TYPE_FR = {
+        'paye': 'Payé', 'maladie': 'Maladie', 'maternite': 'Maternité',
+        'paternite': 'Paternité', 'exceptionnel': 'Exceptionnel', 'sans_solde': 'Sans solde',
+    }
+    STATUT_FR = {'en_attente': 'En attente', 'approuve': 'Approuvé', 'refuse': 'Refusé', 'annule': 'Annulé'}
+    for row_idx, c in enumerate(conges, 2):
+        fill = PatternFill('solid', fgColor='F0FFF4') if row_idx % 2 == 0 else PatternFill('solid', fgColor='FFFFFF')
+        data = [
+            c.employe.matricule,
+            c.employe.nom.upper(),
+            c.employe.prenom,
+            TYPE_FR.get(c.type_conge, c.type_conge),
+            c.date_debut.strftime('%d/%m/%Y'),
+            c.date_fin.strftime('%d/%m/%Y'),
+            c.nb_jours,
+            STATUT_FR.get(c.statut, c.statut),
+            c.motif[:100] if c.motif else '',
+        ]
+        for col_idx, val in enumerate(data, 1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.fill      = fill
+            cell.alignment = Alignment(vertical='center')
+
+    _auto_width(ws)
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="conges_{annee}.xlsx"'
+    wb.save(response)
+    return response
+
+
+@rh_requis
+def export_excel_permissions(request):
+    """Exporte les permissions au format Excel (.xlsx)."""
+    annee = int(request.GET.get('annee', date.today().year))
+
+    perms = (
+        Permission.objects
+        .filter(date_debut__year=annee)
+        .select_related('employe', 'valideur')
+        .order_by('-date_demande')
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Permissions'
+    ws.row_dimensions[1].height = 30
+
+    headers = ['Matricule', 'Nom', 'Prénoms', 'Date début', 'Date fin', 'Nb jours', 'Statut', 'Motif']
+    for col_idx, h in enumerate(headers, 1):
+        _style_header_cell(ws.cell(row=1, column=col_idx, value=h))
+
+    STATUT_FR = {'en_attente': 'En attente', 'approuve': 'Approuvé', 'refuse': 'Refusé', 'annule': 'Annulé'}
+    for row_idx, p in enumerate(perms, 2):
+        fill = PatternFill('solid', fgColor='F0FFF4') if row_idx % 2 == 0 else PatternFill('solid', fgColor='FFFFFF')
+        data = [
+            p.employe.matricule,
+            p.employe.nom.upper(),
+            p.employe.prenom,
+            p.date_debut.strftime('%d/%m/%Y'),
+            p.date_fin.strftime('%d/%m/%Y'),
+            p.nb_jours,
+            STATUT_FR.get(p.statut, p.statut),
+            p.motif[:100] if p.motif else '',
+        ]
+        for col_idx, val in enumerate(data, 1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.fill      = fill
+            cell.alignment = Alignment(vertical='center')
+
+    _auto_width(ws)
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="permissions_{annee}.xlsx"'
+    wb.save(response)
+    return response
+
+
+# ─────────────────────────────────────────────
+# Historique des actions RH (ActionLog)
+# ─────────────────────────────────────────────
+def _log_action(request, action, description, employe=None):
+    """Enregistre une action dans l'historique RH."""
+    ActionLog.objects.create(
+        utilisateur=request.user,
+        action=action,
+        description=description,
+        employe=employe,
+    )
+
+
+@rh_requis
+def historique_actions(request):
+    """Liste paginée des actions RH."""
+    from django.core.paginator import Paginator
+    logs = ActionLog.objects.select_related('utilisateur', 'employe').order_by('-date')
+    q = request.GET.get('q', '')
+    if q:
+        from django.db.models import Q as DQ
+        logs = logs.filter(
+            DQ(description__icontains=q) |
+            DQ(utilisateur__username__icontains=q) |
+            DQ(employe__nom__icontains=q) |
+            DQ(employe__prenom__icontains=q)
+        )
+    paginator = Paginator(logs, 30)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'SYGEPE/historique_actions.html', {'page_obj': page, 'q': q})

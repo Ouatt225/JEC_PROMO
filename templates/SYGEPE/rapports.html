@@ -158,26 +158,69 @@
     </a>
   </div>
 
+  <!-- Export Excel Présences -->
+  <div class="rapport-card" style="border-top-color: #217346;">
+    <div class="rapport-card-icon">📗</div>
+    <h3>Export Excel — Présences</h3>
+    <p>Présences du mois sélectionné au format .xlsx</p>
+    <a href="{% url 'export_excel_presences' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-pres"
+       style="background:#217346;">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      EXCEL
+    </a>
+  </div>
+
+  <!-- Export Excel Congés -->
+  <div class="rapport-card" style="border-top-color: #217346;">
+    <div class="rapport-card-icon">📗</div>
+    <h3>Export Excel — Congés</h3>
+    <p>Tous les congés de l'année sélectionnée au format .xlsx</p>
+    <a href="{% url 'export_excel_conges' %}?annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-cong"
+       style="background:#217346;">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      EXCEL
+    </a>
+  </div>
+
+  <!-- Export Excel Permissions -->
+  <div class="rapport-card" style="border-top-color: #217346;">
+    <div class="rapport-card-icon">📗</div>
+    <h3>Export Excel — Permissions</h3>
+    <p>Toutes les permissions de l'année sélectionnée au format .xlsx</p>
+    <a href="{% url 'export_excel_permissions' %}?annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-perm"
+       style="background:#217346;">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      EXCEL
+    </a>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 const URLS = {
-  presences:   "{% url 'rapport_presences' %}",
-  conges:      "{% url 'rapport_conges' %}",
-  permissions: "{% url 'rapport_permissions' %}",
-  rh:          "{% url 'rapport_rh_complet' %}",
+  presences:    "{% url 'rapport_presences' %}",
+  conges:       "{% url 'rapport_conges' %}",
+  permissions:  "{% url 'rapport_permissions' %}",
+  rh:           "{% url 'rapport_rh_complet' %}",
+  xlsxPres:     "{% url 'export_excel_presences' %}",
+  xlsxCong:     "{% url 'export_excel_conges' %}",
+  xlsxPerm:     "{% url 'export_excel_permissions' %}",
 };
 
 function majLiens() {
   const mois  = document.getElementById('mois').value;
   const annee = document.getElementById('annee').value;
-  const params = `?mois=${mois}&annee=${annee}`;
+  const params      = `?mois=${mois}&annee=${annee}`;
+  const paramsAnnee = `?annee=${annee}`;
   document.getElementById('link-presences').href   = URLS.presences   + params;
   document.getElementById('link-conges').href      = URLS.conges      + params;
   document.getElementById('link-permissions').href = URLS.permissions + params;
   document.getElementById('link-rh').href          = URLS.rh          + params;
+  document.getElementById('link-xlsx-pres').href   = URLS.xlsxPres    + params;
+  document.getElementById('link-xlsx-cong').href   = URLS.xlsxCong    + paramsAnnee;
+  document.getElementById('link-xlsx-perm').href   = URLS.xlsxPerm    + paramsAnnee;
 }
 
 // Mise à jour immédiate dès que la sélection change

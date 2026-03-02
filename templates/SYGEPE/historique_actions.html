@@ -1,0 +1,97 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Historique RH{% endblock %}
+{% block page_title %}Historique des actions RH{% endblock %}
+{% block page_subtitle %}Audit trail — toutes les actions enregistrées{% endblock %}
+
+{% block content %}
+<!-- Recherche -->
+<div class="table-card" style="margin-bottom: 20px;">
+  <form method="get" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Rechercher (action, utilisateur, employé)…"
+           class="form-control" style="flex:1; min-width:200px;">
+    <button type="submit" class="btn btn-primary">Rechercher</button>
+    {% if q %}
+    <a href="{% url 'historique_actions' %}" class="btn btn-outline">Réinitialiser</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Tableau -->
+<div class="table-card">
+  <div class="table-card-header">
+    <h3>📋 Historique des actions</h3>
+    <span style="font-size:.82rem; color:#6b7280;">{{ page_obj.paginator.count }} action{{ page_obj.paginator.count|pluralize }} au total</span>
+  </div>
+
+  {% if page_obj.object_list %}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Utilisateur</th>
+          <th>Action</th>
+          <th>Employé concerné</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in page_obj %}
+        <tr>
+          <td style="white-space:nowrap; color:#6b7280; font-size:.8rem;">
+            {{ log.date|date:"d/m/Y H:i" }}
+          </td>
+          <td>
+            <strong>{{ log.utilisateur.get_full_name|default:log.utilisateur.username }}</strong>
+          </td>
+          <td>
+            {% with a=log.action %}
+            <span class="badge-status
+              {% if 'approuve' in a %}badge-approuve
+              {% elif 'refuse' in a %}badge-refuse
+              {% elif 'ajoute' in a or 'demande' in a %}badge-en_attente
+              {% else %}badge-annule{% endif %}">
+              {{ log.get_action_display }}
+            </span>
+            {% endwith %}
+          </td>
+          <td>
+            {% if log.employe %}
+              <a href="{% url 'detail_employe' log.employe.pk %}" style="color: var(--amber);">
+                {{ log.employe.get_full_name }}
+              </a>
+            {% else %}—{% endif %}
+          </td>
+          <td style="font-size:.82rem; color:#374151;">{{ log.description }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex; justify-content:center; gap:8px; padding:16px; flex-wrap:wrap;">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-outline btn-sm">← Précédent</a>
+    {% endif %}
+
+    <span style="padding:6px 12px; font-size:.85rem; color:#6b7280;">
+      Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-outline btn-sm">Suivant →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <p>Aucune action enregistrée{% if q %} pour « {{ q }} »{% endif %}.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

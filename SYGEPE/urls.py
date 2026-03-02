@@ -49,6 +49,18 @@ urlpatterns = [
 
     # API
     path('api/notifications/conges/', views.api_notifications_conges, name='api_notifications_conges'),
+    path('api/calendrier/events/',    views.api_calendrier_events,    name='api_calendrier_events'),
+
+    # Calendrier
+    path('calendrier/', views.calendrier_conges, name='calendrier_conges'),
+
+    # Exports Excel
+    path('exports/presences/', views.export_excel_presences,  name='export_excel_presences'),
+    path('exports/conges/',    views.export_excel_conges,     name='export_excel_conges'),
+    path('exports/permissions/',views.export_excel_permissions,name='export_excel_permissions'),
+
+    # Historique RH
+    path('historique/', views.historique_actions, name='historique_actions'),
 
     # Boutiques
     path('boutiques/', views.liste_boutiques, name='liste_boutiques'),

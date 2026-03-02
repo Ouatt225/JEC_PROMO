@@ -232,6 +232,47 @@ class Conge(models.Model):
         ordering = ['-date_demande']
 
 
+class ActionLog(models.Model):
+    """Historique des actions RH — audit trail."""
+    ACTION_CHOICES = [
+        ('employe_ajoute',     'Employé ajouté'),
+        ('employe_modifie',    'Employé modifié'),
+        ('employe_supprime',   'Employé supprimé'),
+        ('conge_demande',      'Congé demandé'),
+        ('conge_approuve',     'Congé approuvé'),
+        ('conge_refuse',       'Congé refusé'),
+        ('permission_demande', 'Permission demandée'),
+        ('permission_approuve','Permission approuvée'),
+        ('permission_refuse',  'Permission refusée'),
+        ('presence_marquee',   'Présence marquée'),
+        ('boutique_ajoutee',   'Boutique ajoutée'),
+        ('boutique_modifiee',  'Boutique modifiée'),
+        ('autre',              'Autre'),
+    ]
+
+    utilisateur = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='actions_log',
+        verbose_name='Utilisateur'
+    )
+    action      = models.CharField(max_length=30, choices=ACTION_CHOICES)
+    description = models.TextField()
+    employe     = models.ForeignKey(
+        'Employe', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='actions_log',
+        verbose_name='Employé concerné'
+    )
+    date        = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.date:%d/%m/%Y %H:%M} — {self.get_action_display()} par {self.utilisateur}"
+
+    class Meta:
+        verbose_name        = "Action RH"
+        verbose_name_plural = "Historique des actions RH"
+        ordering            = ['-date']
+
+
 class Permission(models.Model):
     STATUT_CHOICES = [
         ('en_attente', 'En attente'),

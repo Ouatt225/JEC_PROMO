@@ -59,9 +59,19 @@
       {% if permissions_en_attente_count %}<span class="nav-badge">{{ permissions_en_attente_count }}</span>{% endif %}
     </a>
 
+    <a href="{% url 'calendrier_conges' %}" class="nav-item {% if request.resolver_match.url_name == 'calendrier_conges' %}active{% endif %}">
+      <span class="nav-icon">🗓️</span>
+      <span>Calendrier</span>
+    </a>
+
     <a href="{% url 'rapports' %}" class="nav-item {% if 'rapport' in request.resolver_match.url_name %}active{% endif %}">
       <span class="nav-icon">📈</span>
       <span>Rapports</span>
+    </a>
+
+    <a href="{% url 'historique_actions' %}" class="nav-item {% if request.resolver_match.url_name == 'historique_actions' %}active{% endif %}">
+      <span class="nav-icon">📋</span>
+      <span>Historique RH</span>
     </a>
 
     <div class="nav-section-title">Compte</div>
@@ -162,6 +172,15 @@
 <!-- ══ Notifications congés ══ -->
 <div id="sygepe-notif-container"></div>
 <style>
+/* ── KPI Progress bar ── */
+.kpi-progress-wrap {
+  height: 6px; background: rgba(255,255,255,0.3);
+  border-radius: 3px; margin: 6px 0 4px; overflow: hidden;
+}
+.kpi-progress-bar {
+  height: 100%; background: rgba(255,255,255,0.85);
+  border-radius: 3px; transition: width 0.8s ease;
+}
 /* ── Cloche ── */
 .notif-bell-wrap { position: relative; }
 .notif-bell-btn {

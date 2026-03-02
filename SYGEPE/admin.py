@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.utils.html import format_html
 from django import forms
 
-from .models import Departement, Employe, Presence, Conge, Permission, Boutique
+from .models import Departement, Employe, Presence, Conge, Permission, Boutique, ActionLog
 
 # ─── Personnalisation du site admin ───────────────────────────────────────────
 admin.site.site_header  = "SYGEPE — Administration"
@@ -419,3 +419,19 @@ class PermissionAdmin(admin.ModelAdmin):
 class BoutiqueAdmin(admin.ModelAdmin):
     list_display  = ('nom', 'responsable', 'telephone', 'email', 'date_creation')
     search_fields = ('nom', 'responsable__nom', 'responsable__prenom')
+
+
+@admin.register(ActionLog)
+class ActionLogAdmin(admin.ModelAdmin):
+    list_display  = ('date', 'utilisateur', 'get_action_display', 'employe', 'description_courte')
+    list_filter   = ('action',)
+    search_fields = ('description', 'utilisateur__username', 'employe__nom', 'employe__prenom')
+    date_hierarchy = 'date'
+    readonly_fields = ('date', 'utilisateur', 'action', 'employe', 'description')
+
+    def description_courte(self, obj):
+        return obj.description[:80] + '…' if len(obj.description) > 80 else obj.description
+    description_courte.short_description = 'Description'
+
+    def has_add_permission(self, request):
+        return False  # L'historique ne doit pas être créé manuellement
