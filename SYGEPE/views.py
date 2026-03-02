@@ -189,7 +189,12 @@ def dashboard(request):
         .annotate(nb=Count('id'))
         .order_by('mois')
     )
-    pres_dict = {p['mois'].date(): p['nb'] for p in pres_db}
+    # PostgreSQL retourne un datetime.date, SQLite retourne un datetime.datetime
+    # → on normalise en appelant .date() uniquement si l'objet a un attribut 'hour'
+    pres_dict = {
+        (p['mois'].date() if hasattr(p['mois'], 'hour') else p['mois']): p['nb']
+        for p in pres_db
+    }
     labels_presences = [m.strftime('%b %Y') for m in mois_liste]
     data_presences   = [pres_dict.get(m, 0) for m in mois_liste]
 
