@@ -2,7 +2,7 @@
 
 {% block title %}Liste des employés{% endblock %}
 {% block page_title %}Employés{% endblock %}
-{% block page_subtitle %}Gestion du personnel — {{ employes.count }} employé(s) trouvé(s){% endblock %}
+{% block page_subtitle %}Gestion du personnel — {{ employes.paginator.count }} employé(s) trouvé(s){% endblock %}
 
 {% block content %}
 
@@ -28,11 +28,13 @@
   </select>
 
   <button type="submit" class="btn btn-primary">Filtrer</button>
-  <a href="{% url 'liste_employes' %}" class="btn btn-outline">Réinitialiser</a>
+  <a href="{% url 'sygepe:liste_employes' %}" class="btn btn-outline">Réinitialiser</a>
 
+  {% if is_rh_user %}
   <div style="margin-left: auto;">
-    <a href="{% url 'ajouter_employe' %}" class="btn btn-primary">+ Ajouter un employé</a>
+    <a href="{% url 'sygepe:ajouter_employe' %}" class="btn btn-primary">+ Ajouter un employé</a>
   </div>
+  {% endif %}
 </form>
 
 <!-- Tableau -->
@@ -53,12 +55,12 @@
       </thead>
       <tbody>
         {% for emp in employes %}
-        <tr data-href="{% url 'detail_employe' emp.pk %}">
+        <tr data-href="{% url 'sygepe:detail_employe' emp.pk %}">
           <td>
             <div style="display: flex; align-items: center; gap: 12px;">
               <div class="emp-avatar">
                 {% if emp.photo %}
-                  <img src="{{ emp.photo.url }}" alt="{{ emp.get_full_name }}">
+                  <img src="{{ emp.photo.url }}" alt="{{ emp.get_full_name }}" loading="lazy">
                 {% else %}
                   {{ emp.prenom|first }}{{ emp.nom|first }}
                 {% endif %}
@@ -76,9 +78,9 @@
           <td><span class="badge-status badge-{{ emp.statut }}">{{ emp.get_statut_display }}</span></td>
           <td onclick="event.stopPropagation();">
             <div style="display: flex; gap: 6px;">
-              <a href="{% url 'detail_employe' emp.pk %}" class="btn btn-outline btn-sm" data-tooltip="Voir">👁️</a>
-              <a href="{% url 'modifier_employe' emp.pk %}" class="btn btn-warning btn-sm" data-tooltip="Modifier">✏️</a>
-              <a href="{% url 'supprimer_employe' emp.pk %}" class="btn btn-danger btn-sm" data-tooltip="Supprimer">🗑️</a>
+              <a href="{% url 'sygepe:detail_employe' emp.pk %}" class="btn btn-outline btn-sm" data-tooltip="Voir">👁️</a>
+              <a href="{% url 'sygepe:modifier_employe' emp.pk %}" class="btn btn-warning btn-sm" data-tooltip="Modifier">✏️</a>
+              <a href="{% url 'sygepe:supprimer_employe' emp.pk %}" class="btn btn-danger btn-sm" data-tooltip="Supprimer">🗑️</a>
             </div>
           </td>
         </tr>
@@ -87,11 +89,10 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-icon">👥</div>
-    <p>Aucun employé trouvé. <a href="{% url 'ajouter_employe' %}" style="color: var(--primary);">Ajouter le premier employé</a></p>
-  </div>
+  {% if is_rh_user %}{% url 'sygepe:ajouter_employe' as ajouter_url %}{% endif %}
+  {% include 'SYGEPE/includes/empty_state.html' with empty_icon="👥" empty_message="Aucun employé trouvé." empty_action_url=ajouter_url empty_action_label="Ajouter le premier employé" %}
   {% endif %}
+  {% include 'SYGEPE/includes/pagination.html' with page_obj=employes page_range=page_range params=params %}
 </div>
 
 {% endblock %}

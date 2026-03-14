@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYGEPE — Erreur serveur</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #1a0f00;
+      color: #f5f0e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .card {
+      text-align: center;
+      max-width: 460px;
+      width: 100%;
+      background: #2a1a00;
+      border: 1px solid #3d2800;
+      border-radius: 16px;
+      padding: 48px 40px;
+    }
+    .icon { font-size: 4.5rem; margin-bottom: 20px; }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #dc2626;
+      margin-bottom: 12px;
+    }
+    p {
+      color: #a89070;
+      font-size: 0.93rem;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    a {
+      display: inline-block;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    a:hover { opacity: 0.85; }
+    .btn-primary { background: #c47a00; color: #fff; }
+    .btn-outline { border: 1.5px solid #3d2800; color: #f5f0e8; }
+    .code {
+      margin-top: 28px;
+      font-size: 0.75rem;
+      color: #5a4030;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">⚠️</div>
+    <h1>Erreur serveur</h1>
+    <p>
+      Une erreur inattendue s'est produite.<br>
+      L'équipe technique a été notifiée.<br>
+      Veuillez réessayer dans quelques instants.
+    </p>
+    <div class="actions">
+      <a href="/dashboard/" class="btn-primary">🏠 Tableau de bord</a>
+      <a href="javascript:history.back()" class="btn-outline">← Retour</a>
+    </div>
+    <p class="code">Code erreur : 500 — Internal Server Error</p>
+  </div>
+</body>
+</html>

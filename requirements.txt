@@ -1,0 +1,31 @@
+# SYGEPE — dépendances de production (versions épinglées)
+# Python 3.13 · Django 5.0
+#
+# Installer  : pip install -r requirements.txt
+# Mettre à jour : pip install -U <paquet> puis épingler la nouvelle version ici
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Framework ─────────────────────────────────────────────────────────────────
+Django==5.0
+python-decouple==3.8          # lecture du fichier .env (SECRET_KEY, DB_*, REDIS_URL…)
+
+# ── Base de données (PostgreSQL) ──────────────────────────────────────────────
+psycopg[binary]==3.3.3        # driver psycopg3 — roues précompilées (pas de build tools)
+
+# ── Cache Redis + rate-limiting ───────────────────────────────────────────────
+# ATTENTION : redis n'est pas encore installé dans le venv de développement.
+# Après la première installation, épingler avec :  pip freeze | grep redis
+redis>=5.0,<6                 # client Python Redis (RedisCache + django-ratelimit)
+django-ratelimit==4.1.0       # protection brute-force sur la vue login
+
+# ── Exports ───────────────────────────────────────────────────────────────────
+openpyxl==3.1.5               # exports Excel (.xlsx)    — SYGEPE/services/excel.py
+reportlab==4.4.10             # génération PDF           — SYGEPE/services/pdf.py
+Pillow==12.1.1                # photos employés (ImageField + PDF)
+
+# ── Minification des statics (production) ────────────────────────────────────
+rcssmin==1.1.2                # minification CSS pure Python — utilisé par MinifiedManifestStorage
+rjsmin==1.2.2                 # minification JS  pure Python — utilisé par MinifiedManifestStorage
+
+# ── Serveur WSGI (production) ─────────────────────────────────────────────────
+gunicorn==22.0.0              # remplace `manage.py runserver` en production

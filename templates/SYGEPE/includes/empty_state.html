@@ -1,0 +1,7 @@
+{% comment %}
+  État vide générique. Paramètres : empty_icon, empty_message, empty_action_url (opt), empty_action_label (opt)
+{% endcomment %}
+<div class="empty-state">
+  <div class="empty-icon">{{ empty_icon }}</div>
+  <p>{{ empty_message }}{% if empty_action_url %} <a href="{{ empty_action_url }}" style="color:var(--primary);">{{ empty_action_label }}</a>{% endif %}</p>
+</div>

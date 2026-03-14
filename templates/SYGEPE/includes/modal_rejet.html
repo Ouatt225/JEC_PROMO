@@ -1,0 +1,59 @@
+{% comment %}
+  Modal de rejet avec motif obligatoire.
+  Inclut l'HTML + le JS (ouvrirModalRejet, fermerModalRejet, soumettreRejet).
+  A inclure une seule fois par page.
+{% endcomment %}
+
+<div id="modal-rejet"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+         z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:32px;max-width:440px;
+              width:90%;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+    <h3 style="margin:0 0 8px;font-size:1.05rem;color:#991B1B;">✖ Rejeter la demande</h3>
+    <p style="color:var(--text-muted);font-size:0.88rem;margin:0 0 16px;">
+      Veuillez indiquer le motif du rejet <strong>(obligatoire)</strong>.
+    </p>
+    <form id="form-rejet" method="post" action="">
+      {% csrf_token %}
+      <input type="hidden" name="statut" value="refuse">
+      <textarea id="rejet-commentaire" name="commentaire_valideur" rows="3"
+        class="form-control" placeholder="Motif du rejet..."
+        style="width:100%;margin-bottom:8px;resize:vertical;"></textarea>
+      <small id="rejet-error" style="color:#dc2626;display:none;">Le motif est obligatoire.</small>
+      <div style="display:flex;gap:12px;margin-top:16px;justify-content:flex-end;">
+        <button type="button" onclick="fermerModalRejet()" class="btn btn-outline">Annuler</button>
+        <button type="button" onclick="soumettreRejet()" class="btn btn-danger">Confirmer le rejet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirModalRejet(url) {
+  document.getElementById('form-rejet').action = url;
+  document.getElementById('rejet-commentaire').value = '';
+  document.getElementById('rejet-error').style.display = 'none';
+  document.getElementById('modal-rejet').style.display = 'flex';
+  setTimeout(() => document.getElementById('rejet-commentaire').focus(), 100);
+}
+function fermerModalRejet() {
+  document.getElementById('modal-rejet').style.display = 'none';
+}
+function soumettreRejet() {
+  const commentaire = document.getElementById('rejet-commentaire').value.trim();
+  if (!commentaire) {
+    document.getElementById('rejet-error').style.display = 'block';
+    document.getElementById('rejet-commentaire').focus();
+    return;
+  }
+  document.getElementById('form-rejet').submit();
+}
+document.getElementById('modal-rejet').addEventListener('click', function(e) {
+  if (e.target === this) fermerModalRejet();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('modal-rejet').style.display === 'flex') {
+    fermerModalRejet();
+  }
+});
+</script>

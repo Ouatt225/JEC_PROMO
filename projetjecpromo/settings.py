@@ -33,6 +33,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'SYGEPE.middleware.ContentSecurityPolicyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -53,6 +54,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'SYGEPE.context_processors.roles_utilisateur',
             ],
         },
     },
@@ -60,6 +62,36 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'projetjecpromo.wsgi.application'
 
+
+# ── Cache ─────────────────────────────────────────────────────────────────────
+# Développement (DEBUG=True)  → LocMemCache  (pas besoin de Redis)
+# Production   (DEBUG=False)  → RedisCache   (nécessite pip install redis)
+
+REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
+
+if DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'socket_connect_timeout': 5,
+                'socket_timeout': 5,
+            },
+            'KEY_PREFIX': 'sygepe',
+        }
+    }
+
+# Durées de cache du dashboard (en secondes)
+CACHE_TTL_DASHBOARD_STATS  = 300    # 5 min  — compteurs temps réel
+CACHE_TTL_DASHBOARD_CHARTS = 3600   # 1 h    — graphiques historiques
+CACHE_TTL_DASHBOARD_ALERTS = 3600   # 1 h    — alertes anniversaires
 
 # ── Base de données ───────────────────────────────────────────────────────────
 
@@ -73,6 +105,10 @@ DATABASES = {
         'PORT': config('DB_PORT', default='5432'),
         'OPTIONS': {
             'client_encoding': 'UTF8',
+        },
+        # Base de test isolée — configurable via TEST_DB_NAME dans .env ou CI
+        'TEST': {
+            'NAME': config('TEST_DB_NAME', default='test_sygepe_db'),
         },
     }
 }
@@ -126,7 +162,7 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_AGE = 3600
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SAVE_EVERY_REQUEST = False  # Ne sauvegarde la session que si elle a été modifiée
 
 
 # ── En-têtes de sécurité (actifs en développement ET production) ─────────────
@@ -157,6 +193,35 @@ if not DEBUG:
 
     # Cookie CSRF uniquement en HTTPS
     CSRF_COOKIE_SECURE = True
+
+    # ── Optimisation des fichiers statiques en production ─────────────────────
+    # ManifestStaticFilesStorage ajoute un hash dans le nom de chaque fichier
+    # (cache-busting) et compresse avec gzip. Nécessite `python manage.py collectstatic`.
+    # Pour la minification réelle (CSS/JS), deux options :
+    #   Option A — django-compressor : pip install django-compressor
+    #              Ajouter 'compressor' à INSTALLED_APPS et {% load compress %}
+    #              + {% compress css %}...{% endcompress %} dans les templates.
+    #   Option B — Build tool (Vite/esbuild) : minifier en amont, puis collectstatic.
+    STATICFILES_STORAGE = 'projetjecpromo.storage.MinifiedManifestStaticFilesStorage'
+
+
+# ── Règles métier RH ─────────────────────────────────────────────────────────
+
+# Nombre maximum de tentatives de connexion par IP par minute
+LOGIN_RATE_LIMIT = '5/m'
+
+# Cache utilisé par django-ratelimit (doit pointer sur le même backend Redis)
+RATELIMIT_USE_CACHE = 'default'
+
+# Nombre maximum de lignes exportées en un seul fichier Excel/PDF
+# Au-delà, la vue renvoie HTTP 400 plutôt que de laisser le worker Gunicorn timeout.
+EXPORT_MAX_ROWS = 5_000
+
+# Nombre de jours de congé payé annuel autorisé par employé
+QUOTA_CONGES_ANNUELS = 30
+
+# Âge légal de départ à la retraite (en années)
+AGE_RETRAITE = 60
 
 
 # ── Divers ───────────────────────────────────────────────────────────────────

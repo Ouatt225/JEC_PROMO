@@ -1,0 +1,12 @@
+# SYGEPE — dépendances de développement / test
+# Installer : pip install -r requirements-dev.txt
+# ──────────────────────────────────────────────────────────────────────────────
+
+-r requirements.txt
+
+# ── Tests & couverture ────────────────────────────────────────────────────────
+coverage==7.13.4
+
+# ── Fixtures & données de test ────────────────────────────────────────────────
+factory-boy==3.3.3
+Faker==40.5.1

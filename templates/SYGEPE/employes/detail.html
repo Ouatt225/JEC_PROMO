@@ -10,7 +10,7 @@
 <div class="detail-header">
   <div class="detail-avatar">
     {% if employe.photo %}
-      <img src="{{ employe.photo.url }}" alt="{{ employe.get_full_name }}">
+      <img src="{{ employe.photo.url }}" alt="{{ employe.get_full_name }}" loading="lazy">
     {% else %}
       {{ employe.prenom|first }}{{ employe.nom|first }}
     {% endif %}
@@ -25,9 +25,9 @@
     </div>
   </div>
   <div style="margin-left: auto; display: flex; gap: 10px;">
-    <a href="{% url 'telecharger_profil_employe' employe.pk %}" class="btn btn-primary">⬇ Télécharger profil</a>
-    <a href="{% url 'modifier_employe' employe.pk %}" class="btn btn-warning">✏️ Modifier</a>
-    <a href="{% url 'supprimer_employe' employe.pk %}" class="btn btn-danger"
+    <a href="{% url 'sygepe:telecharger_profil_employe' employe.pk %}" class="btn btn-primary">⬇ Télécharger profil</a>
+    <a href="{% url 'sygepe:modifier_employe' employe.pk %}" class="btn btn-warning">✏️ Modifier</a>
+    <a href="{% url 'sygepe:supprimer_employe' employe.pk %}" class="btn btn-danger"
        data-confirm="Supprimer cet employé définitivement ?">🗑️ Supprimer</a>
   </div>
 </div>
@@ -59,7 +59,7 @@
 <div class="table-card" style="margin-bottom: 20px;">
   <div class="table-card-header">
     <h3>📅 Présences récentes</h3>
-    <a href="{% url 'liste_presences' %}?employe={{ employe.pk }}" class="btn btn-outline btn-sm">Voir tout</a>
+    <a href="{% url 'sygepe:liste_presences' %}?employe={{ employe.pk }}" class="btn btn-outline btn-sm">Voir tout</a>
   </div>
   {% if presences_recentes %}
   <div class="table-responsive">

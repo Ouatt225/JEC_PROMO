@@ -1,0 +1,36 @@
+# ── Contrôle de version ───────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── Secrets & configuration locale ───────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Cache Python ──────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Données et médias (montés en volume en production) ────────────────────────
+media/
+staticfiles/
+
+# ── Outils de développement ───────────────────────────────────────────────────
+.claude/
+*.sqlite3
+db.sqlite3
+
+# ── IDE & OS ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ── Documentation ─────────────────────────────────────────────────────────────
+*.md
+docs/

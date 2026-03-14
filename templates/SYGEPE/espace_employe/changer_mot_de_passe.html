@@ -1,0 +1,67 @@
+{% extends 'SYGEPE/base_employe.html' %}
+
+{% block title %}Changer mon mot de passe{% endblock %}
+{% block page_title %}Sécurité du compte{% endblock %}
+{% block page_subtitle %}Modifier votre mot de passe{% endblock %}
+
+{% block content %}
+<div class="ec-section" style="max-width: 480px; margin: 0 auto;">
+  <div class="ec-section-header">
+    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Changer mon mot de passe
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'success' }}" style="margin-bottom:16px;">
+        {% if message.tags == 'success' %}✅{% else %}❌{% endif %} {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" style="padding: 8px 0;">
+    {% csrf_token %}
+
+    <div style="margin-bottom:16px;">
+      <label style="font-size:0.82rem;font-weight:600;color:var(--ec-muted);display:block;margin-bottom:6px;">Mot de passe actuel</label>
+      <input type="password" name="old_password" id="id_old_password"
+             style="width:100%;padding:10px 14px;border:1.5px solid var(--ec-border);border-radius:8px;font-size:0.9rem;"
+             placeholder="Votre mot de passe actuel" required autocomplete="current-password">
+      {% if form.old_password.errors %}
+        <small style="color:#EF4444;">{{ form.old_password.errors.0 }}</small>
+      {% endif %}
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="font-size:0.82rem;font-weight:600;color:var(--ec-muted);display:block;margin-bottom:6px;">Nouveau mot de passe</label>
+      <input type="password" name="new_password1" id="id_new_password1"
+             style="width:100%;padding:10px 14px;border:1.5px solid var(--ec-border);border-radius:8px;font-size:0.9rem;"
+             placeholder="Votre nouveau mot de passe" required autocomplete="new-password">
+      {% if form.new_password1.errors %}
+        <small style="color:#EF4444;">{{ form.new_password1.errors.0 }}</small>
+      {% endif %}
+    </div>
+
+    <div style="margin-bottom:24px;">
+      <label style="font-size:0.82rem;font-weight:600;color:var(--ec-muted);display:block;margin-bottom:6px;">Confirmer le nouveau mot de passe</label>
+      <input type="password" name="new_password2" id="id_new_password2"
+             style="width:100%;padding:10px 14px;border:1.5px solid var(--ec-border);border-radius:8px;font-size:0.9rem;"
+             placeholder="Retapez le nouveau mot de passe" required autocomplete="new-password">
+      {% if form.new_password2.errors %}
+        <small style="color:#EF4444;">{{ form.new_password2.errors.0 }}</small>
+      {% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+      <div style="color:#EF4444;font-size:0.82rem;margin-bottom:12px;">
+        {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+      </div>
+    {% endif %}
+
+    <div style="display:flex;gap:12px;">
+      <button type="submit" class="ec-btn-primary">Enregistrer</button>
+      <a href="{% url 'sygepe:profil' %}" class="ec-btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

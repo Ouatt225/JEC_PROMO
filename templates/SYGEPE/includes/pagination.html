@@ -1,0 +1,39 @@
+{% comment %}
+  Pagination générique. Paramètres : page_obj, page_range, params (str GET encodé sans 'page')
+{% endcomment %}
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination-wrap" aria-label="Pagination">
+  <span class="page-info">
+    Page {{ page_obj.number }}&thinsp;/&thinsp;{{ page_obj.paginator.num_pages }}
+    &nbsp;·&nbsp;
+    {{ page_obj.paginator.count }} résultat{{ page_obj.paginator.count|pluralize }}
+  </span>
+
+  <div class="pagination-links">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if params %}&{{ params }}{% endif %}"
+       class="page-link" aria-label="Page précédente">‹</a>
+    {% else %}
+    <span class="page-link disabled" aria-disabled="true">‹</span>
+    {% endif %}
+
+    {% for page_num in page_range %}
+      {% if page_num == "…" %}
+      <span class="page-ellipsis">…</span>
+      {% elif page_num == page_obj.number %}
+      <span class="page-link active" aria-current="page">{{ page_num }}</span>
+      {% else %}
+      <a href="?page={{ page_num }}{% if params %}&{{ params }}{% endif %}"
+         class="page-link">{{ page_num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if params %}&{{ params }}{% endif %}"
+       class="page-link" aria-label="Page suivante">›</a>
+    {% else %}
+    <span class="page-link disabled" aria-disabled="true">›</span>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}

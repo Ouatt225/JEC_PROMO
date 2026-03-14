@@ -5,7 +5,7 @@
 {% block page_subtitle %}Mettez à jour vos informations personnelles{% endblock %}
 
 {% block page_actions %}
-<a href="{% url 'profil' %}" class="ec-btn-outline">
+<a href="{% url 'sygepe:profil' %}" class="ec-btn-outline">
   <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;">
     <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
   </svg>
@@ -78,7 +78,7 @@
     <p style="font-size:0.83rem;color:var(--ec-muted);margin-bottom:14px;">
       Ces informations sont gérées par l'administration. Contactez les RH pour toute modification.
     </p>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+    <div class="ec-grid-3">
       <div class="ec-form-group">
         <label class="ec-form-label">Matricule</label>
         <div class="ec-field-readonly">{{ employe.matricule }}</div>
@@ -109,12 +109,12 @@
 
     <div class="ec-photo-preview-wrap">
       {% if employe.photo %}
-        <img src="{{ employe.photo.url }}" alt="Photo actuelle" class="ec-photo-current" id="photoPreview">
+        <img src="{{ employe.photo.url }}" alt="Photo de profil de {{ employe.get_full_name }}" loading="lazy" class="ec-photo-current" id="photoPreview">
       {% else %}
         <div class="ec-photo-placeholder-sm" id="photoPlaceholder">
           {{ employe.prenom|first|upper }}{{ employe.nom|first|upper }}
         </div>
-        <img src="" alt="" class="ec-photo-current" id="photoPreview" style="display:none;">
+        <img src="" alt="Aperçu de la nouvelle photo" class="ec-photo-current" id="photoPreview" style="display:none;">
       {% endif %}
       <div class="ec-photo-info">
         <strong>Photo actuelle</strong><br>
@@ -249,7 +249,7 @@
         </svg>
         Enregistrer les modifications
       </button>
-      <a href="{% url 'profil' %}" class="ec-btn-outline">Annuler</a>
+      <a href="{% url 'sygepe:profil' %}" class="ec-btn-outline">Annuler</a>
     </div>
 
   </div>
