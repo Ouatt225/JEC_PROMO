@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.utils.html import format_html
 from django import forms
 
-from .models import Departement, Employe, Presence, Conge, Permission, Boutique, ActionLog
+from .models import Departement, Employe, Presence, Conge, Permission, ActionLog
 
 # ─── Personnalisation du site admin ───────────────────────────────────────────
 admin.site.site_header  = "SYGEPE — Administration"
@@ -30,7 +30,7 @@ ROLE_DESCRIPTION = (
     'et permissions de tous les employés.<br>'
     '<strong>💼 DAF</strong> → mêmes accès que RH (tableau de bord, congés, permissions).<br>'
     '<strong>⚙ Administrateur</strong> → accès complet : gestion des employés, '
-    'boutiques, présences + toutes les fonctions RH.'
+    'présences + toutes les fonctions RH.'
     '</div>'
 )
 
@@ -199,18 +199,27 @@ class EmployeAdminForm(forms.ModelForm):
     username = forms.CharField(
         label="Nom d'utilisateur (login)",
         max_length=150, required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Laisser vide si déjà lié à un compte'}),
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Laisser vide si déjà lié à un compte',
+            'autocomplete': 'off',
+        }),
         help_text="Remplir uniquement pour créer un NOUVEAU compte utilisateur.",
     )
     password1 = forms.CharField(
         label="Mot de passe",
         required=False,
-        widget=forms.PasswordInput(attrs={'placeholder': 'Nouveau mot de passe'}),
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Nouveau mot de passe',
+            'autocomplete': 'new-password',
+        }),
     )
     password2 = forms.CharField(
         label="Confirmer le mot de passe",
         required=False,
-        widget=forms.PasswordInput(attrs={'placeholder': 'Répéter le mot de passe'}),
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Répéter le mot de passe',
+            'autocomplete': 'new-password',
+        }),
     )
 
     class Meta:
@@ -300,7 +309,7 @@ class EmployeAdmin(admin.ModelAdmin):
         ('💼  Emploi', {
             'fields': (
                 'poste',
-                ('departement', 'boutique'),
+                'departement',
                 'date_embauche',
             ),
         }),
@@ -414,11 +423,6 @@ class PermissionAdmin(admin.ModelAdmin):
     search_fields = ('employe__nom', 'employe__prenom')
     date_hierarchy = 'date_debut'
 
-
-@admin.register(Boutique)
-class BoutiqueAdmin(admin.ModelAdmin):
-    list_display  = ('nom', 'responsable', 'telephone', 'email', 'date_creation')
-    search_fields = ('nom', 'responsable__nom', 'responsable__prenom')
 
 
 @admin.register(ActionLog)

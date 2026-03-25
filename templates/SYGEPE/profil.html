@@ -5,7 +5,7 @@
 {% block page_subtitle %}Vos informations personnelles{% endblock %}
 
 {% block content %}
-<div style="display: grid; grid-template-columns: 300px 1fr; gap: 24px;">
+<div class="profile-layout">
 
   <!-- Carte profil -->
   <div class="profile-card">
@@ -21,8 +21,7 @@
       <span>👥</span>
       <span style="font-weight: 600; color: var(--primary);">
         {% if employe %}{{ employe.get_role_display }}
-        {% elif user.is_superuser %}Administrateur
-        {% else %}—{% endif %}
+        {% else %}{{ groupe_principal }}{% endif %}
       </span>
     </div>
     {% if employe %}
@@ -31,9 +30,18 @@
     {% endif %}
 
     <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; align-items: stretch;">
-      <a href="{% url 'sygepe:telecharger_profil' %}" class="btn btn-primary" style="text-align:center; font-size:0.82rem;">
+      {% if employe %}
+      <a href="{% url 'sygepe:modifier_profil_employe' %}" class="btn btn-primary" style="text-align:center; font-size:0.82rem;">
+        ✏️ Modifier mon profil
+      </a>
+      <a href="{% url 'sygepe:telecharger_profil' %}" class="btn btn-outline" style="text-align:center; font-size:0.82rem;">
         ⬇ Télécharger mon profil
       </a>
+      {% else %}
+      <a href="{% url 'sygepe:modifier_compte_staff' %}" class="btn btn-primary" style="text-align:center; font-size:0.82rem;">
+        ✏️ Modifier mon compte
+      </a>
+      {% endif %}
       <a href="{% url 'sygepe:changer_mot_de_passe' %}" class="btn btn-outline" style="text-align:center; font-size:0.82rem;">
         🔑 Changer mon mot de passe
       </a>
@@ -59,7 +67,7 @@
     {% if employe %}
     <div class="table-card" style="margin-bottom: 20px;">
       <div class="table-card-header"><h3>💼 Fiche employé</h3></div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 0.9rem;">
+      <div class="col-2-grid" style="font-size: 0.9rem;">
         <div>
           <div style="color: var(--text-muted); font-size: 0.78rem; font-weight: 600; margin-bottom: 4px;">Poste</div>
           <div>{{ employe.poste }}</div>
@@ -79,7 +87,7 @@
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="col-2-grid" style="gap: 20px;">
       <div class="table-card">
         <div class="table-card-header"><h3>🏖️ Mes congés récents</h3>
           <a href="{% url 'sygepe:liste_conges' %}" class="btn btn-outline btn-sm">Voir tout</a>
@@ -135,10 +143,52 @@
     </div>
 
     {% else %}
+    {# Compte staff sans fiche employé (RH, DAF, Admin sans Employe lié) #}
+    <div class="table-card" style="margin-bottom: 20px;">
+      <div class="table-card-header"><h3>👤 Compte {{ groupe_principal }}</h3></div>
+      <div class="col-2-grid" style="font-size: 0.9rem;">
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.78rem; font-weight: 600; margin-bottom: 4px;">Nom d'utilisateur</div>
+          <div>{{ user.username }}</div>
+        </div>
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.78rem; font-weight: 600; margin-bottom: 4px;">Adresse e-mail</div>
+          <div>{{ user.email|default:"Non renseigné" }}</div>
+        </div>
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.78rem; font-weight: 600; margin-bottom: 4px;">Nom complet</div>
+          <div>{{ user.get_full_name|default:"Non renseigné" }}</div>
+        </div>
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.78rem; font-weight: 600; margin-bottom: 4px;">Rôle(s)</div>
+          <div>
+            {% for g in groupes %}
+              <span class="badge-status badge-en_attente" style="margin-right:4px;">{{ g }}</span>
+            {% empty %}
+              {% if user.is_superuser %}<span class="badge-status badge-approuve">Super-admin</span>{% else %}—{% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.78rem; font-weight: 600; margin-bottom: 4px;">Membre depuis</div>
+          <div>{{ user.date_joined|date:"d F Y" }}</div>
+        </div>
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.78rem; font-weight: 600; margin-bottom: 4px;">Dernière connexion</div>
+          <div>{{ user.last_login|date:"d F Y à H:i"|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+
     <div class="table-card">
-      <div class="empty-state">
-        <div class="empty-icon">👤</div>
-        <p>Aucun profil employé associé à votre compte. Contactez l'administrateur.</p>
+      <div class="table-card-header"><h3>🔒 Sécurité du compte</h3></div>
+      <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+        Votre mot de passe doit être régulièrement mis à jour pour garantir la sécurité de vos accès.
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="{% url 'sygepe:changer_mot_de_passe' %}" class="btn btn-outline" style="font-size:0.85rem;">
+          🔑 Changer mon mot de passe
+        </a>
       </div>
     </div>
     {% endif %}

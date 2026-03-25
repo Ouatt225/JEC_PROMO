@@ -40,6 +40,9 @@ static_root/
 .DS_Store
 Thumbs.db
 
+# ── Assistant IA (Claude Code) ───────────
+.claude/
+
 # ── Distribution / Build ─────────────────
 dist/
 build/

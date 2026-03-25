@@ -1,0 +1,51 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Modifier mon compte{% endblock %}
+{% block page_title %}Modifier mon compte{% endblock %}
+{% block page_subtitle %}Mettez à jour les informations de votre compte{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 500px;">
+  <form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div style="color: var(--danger); margin-bottom: 12px;">
+      {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="table-card" style="margin-bottom: 20px;">
+      <div class="table-card-header"><h3>👤 Informations du compte</h3></div>
+      <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:16px;">
+        Nom d'utilisateur : <strong>{{ request.user.username }}</strong> (non modifiable)
+      </p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>{{ form.first_name.label }}</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}<small style="color:var(--danger);">{{ form.first_name.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.last_name.label }}</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}<small style="color:var(--danger);">{{ form.last_name.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group full">
+          <label>{{ form.email.label }}</label>
+          {{ form.email }}
+          {% if form.email.errors %}<small style="color:var(--danger);">{{ form.email.errors.0 }}</small>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      <a href="{% url 'sygepe:profil' %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

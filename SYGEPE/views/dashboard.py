@@ -92,7 +92,13 @@ def dashboard(request):
             if dept:
                 emp_anniv = emp_anniv.filter(departement=dept)
             for emp in emp_anniv:
-                alertes_anniversaires.append({'employe': emp, 'date': jour, 'dans': i})
+                # Stocker des données primitives uniquement (pas d'objets ORM)
+                # → compatible Redis (pickle) sans risque de désérialisation cassée
+                alertes_anniversaires.append({
+                    'nom_complet': emp.get_full_name(),
+                    'date': jour,
+                    'dans': i,
+                })
         cache.set(key_anniv, alertes_anniversaires, settings.CACHE_TTL_DASHBOARD_ALERTS)
 
     # ── Bloc 3 : graphiques (TTL 1 h) ─────────────────────────────────────────

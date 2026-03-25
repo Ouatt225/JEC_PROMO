@@ -12,7 +12,7 @@
            class="form-control" style="flex:1; min-width:200px;">
     <button type="submit" class="btn btn-primary">Rechercher</button>
     {% if q %}
-    <a href="{% url 'historique_actions' %}" class="btn btn-outline">Réinitialiser</a>
+    <a href="{% url 'sygepe:historique_actions' %}" class="btn btn-outline">Réinitialiser</a>
     {% endif %}
   </form>
 </div>
@@ -58,7 +58,7 @@
           </td>
           <td>
             {% if log.employe %}
-              <a href="{% url 'detail_employe' log.employe.pk %}" style="color: var(--amber);">
+              <a href="{% url 'sygepe:detail_employe' log.employe.pk %}" style="color: var(--amber);">
                 {{ log.employe.get_full_name }}
               </a>
             {% else %}—{% endif %}

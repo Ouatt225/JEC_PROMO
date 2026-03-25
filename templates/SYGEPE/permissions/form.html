@@ -26,10 +26,39 @@
         {% if form.motif.errors %}<small style="color: var(--danger);">{{ form.motif.errors.0 }}</small>{% endif %}
       </div>
     </div>
+    <div id="perm-warning" style="display:none; color: var(--danger); background: #fff0f0; border: 1px solid var(--danger); border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;">
+      ⚠️ Une permission ne peut pas dépasser <strong>3 jours</strong>. Veuillez corriger les dates.
+    </div>
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary">📤 Soumettre la demande</button>
-      <a href="{% url 'liste_permissions' %}" class="btn btn-outline">Annuler</a>
+      <button type="submit" id="perm-submit" class="btn btn-primary">📤 Soumettre la demande</button>
+      <a href="{% url 'sygepe:liste_permissions' %}" class="btn btn-outline">Annuler</a>
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const debut  = document.getElementById('id_date_debut');
+  const fin    = document.getElementById('id_date_fin');
+  const warn   = document.getElementById('perm-warning');
+  const submit = document.getElementById('perm-submit');
+
+  function verifier() {
+    if (!debut.value || !fin.value) { warn.style.display = 'none'; submit.disabled = false; return; }
+    const jours = (new Date(fin.value) - new Date(debut.value)) / 86400000 + 1;
+    if (jours > 3) {
+      warn.style.display = 'block';
+      submit.disabled = true;
+    } else {
+      warn.style.display = 'none';
+      submit.disabled = false;
+    }
+  }
+
+  debut.addEventListener('change', verifier);
+  fin.addEventListener('change', verifier);
+})();
+</script>
 {% endblock %}

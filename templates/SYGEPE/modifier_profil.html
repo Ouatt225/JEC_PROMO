@@ -1,0 +1,167 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Modifier mon profil{% endblock %}
+{% block page_title %}Modifier mon profil{% endblock %}
+{% block page_subtitle %}Mettez à jour vos informations personnelles{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 700px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div style="color: var(--danger); margin-bottom: 12px;">
+      {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Infos non modifiables -->
+    <div class="table-card" style="margin-bottom: 20px;">
+      <div class="table-card-header"><h3>🔒 Informations non modifiables</h3></div>
+      <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:14px;">
+        Ces informations sont gérées par l'administration.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 0.88rem;">
+        <div>
+          <div style="color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:3px;">Matricule</div>
+          <div style="background:#f5f5f5; padding:8px 12px; border-radius:6px; color:#888;">{{ employe.matricule }}</div>
+        </div>
+        <div>
+          <div style="color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:3px;">Poste</div>
+          <div style="background:#f5f5f5; padding:8px 12px; border-radius:6px; color:#888;">{{ employe.poste }}</div>
+        </div>
+        <div>
+          <div style="color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:3px;">Département</div>
+          <div style="background:#f5f5f5; padding:8px 12px; border-radius:6px; color:#888;">{{ employe.departement|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photo -->
+    <div class="table-card" style="margin-bottom: 20px;">
+      <div class="table-card-header"><h3>🖼️ Photo de profil</h3></div>
+      <div style="display:flex; align-items:center; gap:20px; padding:8px 0 12px;">
+        {% if employe.photo %}
+          <img src="{{ employe.photo.url }}" alt="Photo de profil de {{ employe.prenom }} {{ employe.nom }}" loading="lazy"
+               id="photoPreview"
+               style="width:90px; height:90px; object-fit:cover; border-radius:50%; border:2px solid var(--border);">
+        {% else %}
+          <div id="photoPlaceholder"
+               style="width:90px; height:90px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:700; color:#fff;">
+            {{ employe.prenom|first|upper }}{{ employe.nom|first|upper }}
+          </div>
+          <img src="" alt="Aperçu photo" id="photoPreview" style="display:none; width:90px; height:90px; object-fit:cover; border-radius:50%;">
+        {% endif %}
+        <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.7;">
+          Format accepté : JPG, PNG, WebP<br>
+          Taille max : 10 Mo (compressée automatiquement)<br>
+          <label for="{{ form.photo.id_for_label }}" class="btn btn-outline"
+                 style="display:inline-flex; margin-top:10px; cursor:pointer; font-size:0.82rem;">
+            📷 Choisir une photo
+          </label>
+          <div style="display:none;">{{ form.photo }}</div>
+        </div>
+      </div>
+      {% if form.photo.errors %}<small style="color:var(--danger);">{{ form.photo.errors.0 }}</small>{% endif %}
+    </div>
+
+    <!-- Contact -->
+    <div class="table-card" style="margin-bottom: 20px;">
+      <div class="table-card-header"><h3>📋 Informations personnelles</h3></div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>{{ form.telephone.label }}</label>
+          {{ form.telephone }}
+          {% if form.telephone.errors %}<small style="color:var(--danger);">{{ form.telephone.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.email.label }}</label>
+          {{ form.email }}
+          {% if form.email.errors %}<small style="color:var(--danger);">{{ form.email.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.sexe.label }}</label>
+          {{ form.sexe }}
+          {% if form.sexe.errors %}<small style="color:var(--danger);">{{ form.sexe.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.date_naissance.label }}</label>
+          {{ form.date_naissance }}
+          {% if form.date_naissance.errors %}<small style="color:var(--danger);">{{ form.date_naissance.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.lieu_naissance.label }}</label>
+          {{ form.lieu_naissance }}
+          {% if form.lieu_naissance.errors %}<small style="color:var(--danger);">{{ form.lieu_naissance.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.situation_familiale.label }}</label>
+          {{ form.situation_familiale }}
+          {% if form.situation_familiale.errors %}<small style="color:var(--danger);">{{ form.situation_familiale.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.nombre_enfants.label }}</label>
+          {{ form.nombre_enfants }}
+          {% if form.nombre_enfants.errors %}<small style="color:var(--danger);">{{ form.nombre_enfants.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.commune.label }}</label>
+          {{ form.commune }}
+          {% if form.commune.errors %}<small style="color:var(--danger);">{{ form.commune.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.ville.label }}</label>
+          {{ form.ville }}
+          {% if form.ville.errors %}<small style="color:var(--danger);">{{ form.ville.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ form.num_cnps.label }}</label>
+          {{ form.num_cnps }}
+          {% if form.num_cnps.errors %}<small style="color:var(--danger);">{{ form.num_cnps.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group full">
+          <label>{{ form.adresse.label }}</label>
+          {{ form.adresse }}
+          {% if form.adresse.errors %}<small style="color:var(--danger);">{{ form.adresse.errors.0 }}</small>{% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 Enregistrer les modifications</button>
+      <a href="{% url 'sygepe:profil' %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  var input = document.getElementById('{{ form.photo.id_for_label }}');
+  var preview = document.getElementById('photoPreview');
+  var placeholder = document.getElementById('photoPlaceholder');
+  if (!input) return;
+  input.addEventListener('change', function(){
+    if (!this.files || !this.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      if (placeholder) placeholder.style.display = 'none';
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(this.files[0]);
+  });
+})();
+</script>
+{% endblock %}

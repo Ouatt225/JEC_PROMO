@@ -20,10 +20,10 @@
   </select>
 
   <button type="submit" class="btn btn-primary">Filtrer</button>
-  <a href="{% url 'liste_presences' %}" class="btn btn-outline">Réinitialiser</a>
+  <a href="{% url 'sygepe:liste_presences' %}" class="btn btn-outline">Réinitialiser</a>
 
   <div style="margin-left: auto;">
-    <a href="{% url 'marquer_presence' %}" class="btn btn-success">+ Marquer présence</a>
+    <a href="{% url 'sygepe:marquer_presence' %}" class="btn btn-success">+ Marquer présence</a>
   </div>
 </form>
 
@@ -64,11 +64,10 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-icon">📅</div>
-    <p>Aucune présence pour ce filtre. <a href="{% url 'marquer_presence' %}" style="color: var(--primary);">Marquer une présence</a></p>
-  </div>
+  {% url 'sygepe:marquer_presence' as marquer_url %}
+  {% include 'SYGEPE/includes/empty_state.html' with empty_icon="📅" empty_message="Aucune présence pour ce filtre." empty_action_url=marquer_url empty_action_label="Marquer une présence" %}
   {% endif %}
+  {% include 'SYGEPE/includes/pagination.html' with page_obj=presences page_range=page_range params=params %}
 </div>
 
 {% endblock %}

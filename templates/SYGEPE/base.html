@@ -1,16 +1,83 @@
+{% extends 'SYGEPE/base_root.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SYGEPE — {% block title %}Gestion du Personnel{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'SYGEPE/css/style.css' %}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <style>{% block extra_css %}{% endblock %}</style>
-</head>
-<body>
+
+{% block title_tag %}SYGEPE — {% block title %}Gestion du Personnel{% endblock %}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'SYGEPE/css/style.css' %}">
+<style>
+  /* Couleurs notifications pour l'espace RH/Admin */
+  :root {
+    --notif-bell-color:       var(--text-muted);
+    --notif-bell-hover-bg:    var(--bg-deep);
+    --notif-bell-hover-color: var(--amber);
+    --notif-badge-bg:         var(--danger);
+    --notif-del-hover:        var(--danger);
+    --notif-muted:            var(--text-muted);
+  }
+
+  /* ── Pagination ─────────────────────────────────────────── */
+  .pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px 0 4px;
+  }
+  .page-info {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .pagination-links {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .page-link:hover:not(.disabled):not(.active) {
+    background: var(--amber-pale);
+    border-color: var(--amber);
+    color: var(--espresso);
+  }
+  .page-link.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #fff;
+    cursor: default;
+  }
+  .page-link.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .page-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  {% block extra_css %}{% endblock %}
+</style>
+{% endblock %}
+
+{% block layout %}
 
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="sidebar" id="sidebar">
@@ -25,58 +92,59 @@
   <nav class="sidebar-nav">
     <div class="nav-section-title">Principal</div>
 
-    <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+    <a href="{% url 'sygepe:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
       <span class="nav-icon">📊</span>
       <span>Tableau de bord</span>
     </a>
 
-    <div class="nav-section-title">Ressources Humaines</div>
+    <div class="nav-section-title">{% if is_responsable_user %}Mon Département{% else %}Ressources Humaines{% endif %}</div>
 
-    <a href="{% url 'liste_employes' %}" class="nav-item {% if 'employe' in request.resolver_match.url_name %}active{% endif %}">
+    <a href="{% url 'sygepe:liste_employes' %}" class="nav-item {% if 'employe' in request.resolver_match.url_name %}active{% endif %}">
       <span class="nav-icon">👥</span>
-      <span>Employés</span>
+      <span>{% if is_responsable_user %}Mes Agents{% else %}Employés{% endif %}</span>
     </a>
 
-    <a href="{% url 'liste_boutiques' %}" class="nav-item {% if 'boutique' in request.resolver_match.url_name %}active{% endif %}">
-      <span class="nav-icon">🏪</span>
-      <span>Boutiques</span>
-    </a>
-
-    <a href="{% url 'liste_presences' %}" class="nav-item {% if 'presence' in request.resolver_match.url_name %}active{% endif %}">
+    <a href="{% url 'sygepe:liste_presences' %}" class="nav-item {% if 'presence' in request.resolver_match.url_name %}active{% endif %}">
       <span class="nav-icon">📅</span>
       <span>Présences</span>
     </a>
 
-    <a href="{% url 'liste_conges' %}" class="nav-item {% if 'conge' in request.resolver_match.url_name %}active{% endif %}">
+    {% if is_rh_user %}
+    <a href="{% url 'sygepe:liste_conges' %}" class="nav-item {% if 'conge' in request.resolver_match.url_name %}active{% endif %}">
       <span class="nav-icon">🏖️</span>
       <span>Congés</span>
       {% if conges_en_attente_count %}<span class="nav-badge">{{ conges_en_attente_count }}</span>{% endif %}
     </a>
+    {% endif %}
 
-    <a href="{% url 'liste_permissions' %}" class="nav-item {% if 'permission' in request.resolver_match.url_name %}active{% endif %}">
+    {% if is_rh_user or is_responsable_user %}
+    <a href="{% url 'sygepe:liste_permissions' %}" class="nav-item {% if 'permission' in request.resolver_match.url_name %}active{% endif %}">
       <span class="nav-icon">🔖</span>
       <span>Permissions</span>
       {% if permissions_en_attente_count %}<span class="nav-badge">{{ permissions_en_attente_count }}</span>{% endif %}
     </a>
+    {% endif %}
 
-    <a href="{% url 'calendrier_conges' %}" class="nav-item {% if request.resolver_match.url_name == 'calendrier_conges' %}active{% endif %}">
+    {% if is_rh_user %}
+    <a href="{% url 'sygepe:calendrier_conges' %}" class="nav-item {% if request.resolver_match.url_name == 'calendrier_conges' %}active{% endif %}">
       <span class="nav-icon">🗓️</span>
       <span>Calendrier</span>
     </a>
+    {% endif %}
 
-    <a href="{% url 'rapports' %}" class="nav-item {% if 'rapport' in request.resolver_match.url_name %}active{% endif %}">
+    <a href="{% url 'sygepe:rapports' %}" class="nav-item {% if 'rapport' in request.resolver_match.url_name %}active{% endif %}">
       <span class="nav-icon">📈</span>
       <span>Rapports</span>
     </a>
 
-    <a href="{% url 'historique_actions' %}" class="nav-item {% if request.resolver_match.url_name == 'historique_actions' %}active{% endif %}">
+    <a href="{% url 'sygepe:historique_actions' %}" class="nav-item {% if request.resolver_match.url_name == 'historique_actions' %}active{% endif %}">
       <span class="nav-icon">📋</span>
       <span>Historique RH</span>
     </a>
 
     <div class="nav-section-title">Compte</div>
 
-    <a href="{% url 'profil' %}" class="nav-item {% if request.resolver_match.url_name == 'profil' %}active{% endif %}">
+    <a href="{% url 'sygepe:profil' %}" class="nav-item {% if request.resolver_match.url_name == 'profil' %}active{% endif %}">
       <span class="nav-icon">👤</span>
       <span>Mon profil</span>
     </a>
@@ -88,12 +156,19 @@
     </a>
     {% endif %}
 
-    <a href="{% url 'logout' %}" class="nav-item">
-      <span class="nav-icon">🚪</span>
-      <span>Déconnexion</span>
-    </a>
+    <form method="post" action="{% url 'sygepe:logout' %}" style="margin:0;padding:0;">
+      {% csrf_token %}
+      <button type="submit" class="nav-item nav-logout"
+              style="width:100%;background:none;border:none;cursor:pointer;font:inherit;text-align:left;">
+        <span class="nav-icon">🚪</span>
+        <span>Déconnexion</span>
+      </button>
+    </form>
   </nav>
 </aside>
+
+<!-- Overlay sombre — sidebar mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- ═══ MAIN WRAPPER ═══ -->
 <div class="main-wrapper" id="mainWrapper">
@@ -110,27 +185,7 @@
     </div>
 
     <div class="topbar-actions">
-
-      <!-- Cloche de notifications -->
-      <div class="notif-bell-wrap" id="notifBellWrap">
-        <button class="notif-bell-btn" id="notifBellBtn" title="Notifications">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span class="notif-badge" id="notifBadge">0</span>
-        </button>
-        <div class="notif-dropdown" id="notifDropdown">
-          <div class="notif-dropdown-header">
-            <span>Notifications</span>
-            <button id="notifClearAll">Tout effacer</button>
-          </div>
-          <div class="notif-dropdown-list" id="notifList">
-            <div class="notif-empty">Aucune notification</div>
-          </div>
-        </div>
-      </div>
-
+      {% include 'SYGEPE/includes/notifications.html' %}
       <div class="topbar-user">
         <div class="user-avatar">
           {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
@@ -150,7 +205,6 @@
   <!-- Page Content -->
   <main class="page-content">
 
-    <!-- Messages Django -->
     {% if messages %}
       {% for message in messages %}
         <div class="alert alert-{{ message.tags|default:'info' }}">
@@ -164,15 +218,13 @@
   </main>
 </div>
 
-<!-- Scripts -->
+<!-- Scripts spécifiques à l'espace RH -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="{% static 'SYGEPE/js/main.js' %}"></script>
 {% block extra_js %}{% endblock %}
 
-<!-- ══ Notifications congés ══ -->
-<div id="sygepe-notif-container"></div>
+<!-- KPI Progress bar (espace RH uniquement) -->
 <style>
-/* ── KPI Progress bar ── */
 .kpi-progress-wrap {
   height: 6px; background: rgba(255,255,255,0.3);
   border-radius: 3px; margin: 6px 0 4px; overflow: hidden;
@@ -181,210 +233,6 @@
   height: 100%; background: rgba(255,255,255,0.85);
   border-radius: 3px; transition: width 0.8s ease;
 }
-/* ── Cloche ── */
-.notif-bell-wrap { position: relative; }
-.notif-bell-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--text-muted); padding: 8px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.2s, color 0.2s; position: relative;
-}
-.notif-bell-btn:hover { background: var(--bg-deep); color: var(--amber); }
-.notif-badge {
-  position: absolute; top: 2px; right: 2px;
-  background: var(--danger); color: #fff;
-  font-size: 0.6rem; font-weight: 700;
-  min-width: 16px; height: 16px; border-radius: 8px;
-  display: none; align-items: center; justify-content: center;
-  padding: 0 3px; border: 2px solid white;
-}
-/* ── Dropdown ── */
-.notif-dropdown {
-  display: none; position: absolute; top: calc(100% + 10px); right: 0;
-  width: 340px; background: white;
-  border-radius: 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.16);
-  z-index: 9000; overflow: hidden;
-}
-.notif-dropdown.open { display: block; animation: dropIn 0.2s ease; }
-@keyframes dropIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-.notif-dropdown-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; border-bottom: 1px solid #f0ece6;
-  font-weight: 700; font-size: 0.88rem; color: var(--text);
-}
-.notif-dropdown-header button {
-  background: none; border: none; color: var(--text-muted);
-  font-size: 0.78rem; cursor: pointer; padding: 4px 8px;
-  border-radius: 6px; transition: background 0.15s;
-}
-.notif-dropdown-header button:hover { background: var(--bg-deep); }
-.notif-dropdown-list { max-height: 340px; overflow-y: auto; }
-.notif-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 12px 16px; border-bottom: 1px solid #f5f0ea;
-  transition: background 0.15s;
-}
-.notif-item:hover { background: #faf7f3; }
-.notif-item-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
-.notif-item-body { flex: 1; min-width: 0; }
-.notif-item-titre { font-weight: 700; font-size: 0.82rem; color: var(--text); margin-bottom: 2px; }
-.notif-item-msg   { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
-.notif-item-del {
-  background: none; border: none; color: #ccc;
-  font-size: 1rem; cursor: pointer; padding: 0 4px; flex-shrink: 0;
-  line-height: 1; transition: color 0.15s;
-}
-.notif-item-del:hover { color: var(--danger); }
-.notif-empty { padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
-/* ── Toasts ── */
-#sygepe-notif-container {
-  position: fixed; bottom: 24px; right: 24px;
-  z-index: 9999; display: flex; flex-direction: column-reverse; gap: 12px;
-  max-width: 380px;
-}
-.sygepe-toast {
-  display: flex; align-items: flex-start; gap: 14px;
-  padding: 16px 18px; border-radius: 14px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-  animation: toastIn 0.4s cubic-bezier(.34,1.56,.64,1) both;
-  position: relative; color: #fff;
-}
-.sygepe-toast.warning { background: linear-gradient(135deg, #9B6100, #C8750A); }
-.sygepe-toast.danger  { background: linear-gradient(135deg, #b91c1c, #C0291F); }
-.sygepe-toast-icon { font-size: 1.6rem; flex-shrink: 0; }
-.sygepe-toast-body { flex: 1; }
-.sygepe-toast-titre { font-weight: 700; font-size: 0.88rem; margin-bottom: 3px; }
-.sygepe-toast-msg   { font-size: 0.8rem; opacity: 0.92; line-height: 1.4; }
-.sygepe-toast-close {
-  position: absolute; top: 8px; right: 10px;
-  background: none; border: none; color: #fff;
-  font-size: 1.1rem; cursor: pointer; opacity: 0.75;
-}
-.sygepe-toast-close:hover { opacity: 1; }
-@keyframes toastIn {
-  from { opacity: 0; transform: translateX(60px) scale(0.9); }
-  to   { opacity: 1; transform: translateX(0) scale(1); }
-}
 </style>
-<script>
-(function() {
-  const STORE_KEY     = 'sygepe_notifs';
-  const DISMISSED_KEY = 'sygepe_dismissed';
-  const SHOWN_KEY     = 'sygepe_notif_shown_' + new Date().toDateString();
 
-  function load()           { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; } }
-  function save(list)       { localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
-  function loadDismissed()  { try { return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]')); } catch { return new Set(); } }
-  function saveDismissed(s) { localStorage.setItem(DISMISSED_KEY, JSON.stringify([...s])); }
-
-  function updateBadge(n) {
-    const b = document.getElementById('notifBadge');
-    if (n > 0) { b.textContent = n > 9 ? '9+' : n; b.style.display = 'flex'; }
-    else        { b.style.display = 'none'; }
-  }
-
-  function renderList(list) {
-    const el = document.getElementById('notifList');
-    if (!list.length) { el.innerHTML = '<div class="notif-empty">Aucune notification</div>'; return; }
-    el.innerHTML = list.map((n, i) => `
-      <div class="notif-item">
-        <div class="notif-item-icon">${n.urgence === 'danger' ? '🔴' : '🟡'}</div>
-        <div class="notif-item-body">
-          <div class="notif-item-titre">${n.titre}</div>
-          <div class="notif-item-msg">${n.message}</div>
-        </div>
-        <button class="notif-item-del" onclick="window._sygepeDelNotif(${i})">×</button>
-      </div>`).join('');
-  }
-
-  // Suppression définitive : ajoute le message aux rejetés
-  window._sygepeDelNotif = function(i) {
-    const list = load();
-    const dismissed = loadDismissed();
-    dismissed.add(list[i].message);
-    saveDismissed(dismissed);
-    list.splice(i, 1);
-    save(list);
-    updateBadge(list.length);
-    renderList(list);
-  };
-
-  function showToast(n, delay) {
-    setTimeout(() => {
-      const c = document.getElementById('sygepe-notif-container');
-      const t = document.createElement('div');
-      t.className = `sygepe-toast ${n.urgence}`;
-      t.innerHTML = `
-        <div class="sygepe-toast-icon">${n.urgence === 'danger' ? '🔴' : '🟡'}</div>
-        <div class="sygepe-toast-body">
-          <div class="sygepe-toast-titre">${n.titre}</div>
-          <div class="sygepe-toast-msg">${n.message}</div>
-        </div>
-        <button class="sygepe-toast-close" onclick="this.closest('.sygepe-toast').remove()">×</button>`;
-      c.appendChild(t);
-      setTimeout(() => t.remove(), 12000);
-    }, delay);
-  }
-
-  function playSound(urgent) {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      function beep(f, s, d) {
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.frequency.value = f; o.type = 'sine';
-        g.gain.setValueAtTime(0, ctx.currentTime + s);
-        g.gain.linearRampToValueAtTime(0.35, ctx.currentTime + s + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + s + d);
-        o.start(ctx.currentTime + s); o.stop(ctx.currentTime + s + d + 0.05);
-      }
-      urgent ? (beep(880,0,.3), beep(880,.4,.3), beep(1100,.8,.5))
-             : (beep(660,0,.3), beep(880,.4,.3));
-    } catch(e) {}
-  }
-
-  // Init depuis le stockage local
-  const stored = load();
-  updateBadge(stored.length);
-  renderList(stored);
-
-  // Fetch et filtre les rejetées
-  fetch("{% url 'api_notifications_conges' %}")
-    .then(r => r.json())
-    .then(data => {
-      const dismissed = loadDismissed();
-      const incoming  = (data.notifications || []).filter(n => !dismissed.has(n.message));
-      const storedMsgs = new Set(stored.map(n => n.message));
-      const newOnes    = incoming.filter(n => !storedMsgs.has(n.message));
-
-      save(incoming);
-      updateBadge(incoming.length);
-      renderList(incoming);
-
-      if (newOnes.length && !sessionStorage.getItem(SHOWN_KEY)) {
-        sessionStorage.setItem(SHOWN_KEY, '1');
-        newOnes.forEach((n, i) => showToast(n, i * 600));
-        playSound(newOnes.some(n => n.urgence === 'danger'));
-      }
-    });
-
-  // Ouvrir/fermer dropdown
-  document.getElementById('notifBellBtn').addEventListener('click', e => {
-    e.stopPropagation();
-    document.getElementById('notifDropdown').classList.toggle('open');
-  });
-  document.addEventListener('click', () => document.getElementById('notifDropdown').classList.remove('open'));
-  document.getElementById('notifDropdown').addEventListener('click', e => e.stopPropagation());
-
-  // Tout effacer définitivement
-  document.getElementById('notifClearAll').addEventListener('click', () => {
-    const list = load();
-    const dismissed = loadDismissed();
-    list.forEach(n => dismissed.add(n.message));
-    saveDismissed(dismissed);
-    save([]); updateBadge(0); renderList([]);
-  });
-})();
-</script>
-</body>
-</html>
+{% endblock %}

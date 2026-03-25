@@ -1,6 +1,7 @@
 import os
 from django import forms
 from django.conf import settings
+from django.contrib.auth.models import User
 from .models import Employe, Departement, Presence, Conge, Permission
 
 PHOTO_MAX_SIZE    = 10 * 1024 * 1024  # 10 Mo — Pillow compresse à l'enregistrement (→ ~30 Ko)
@@ -166,13 +167,14 @@ class CongeForm(FormClassMixin, forms.ModelForm):
                             f"Il vous reste {restants} jour(s) disponible(s)."
                         )
 
-                # Règle 4 : congé maternité — 90 jours max, employée féminine
+                # Règle 4 : congé maternité — exactement 98 jours, employée féminine
                 if type_conge == 'maternite':
                     nb_jours = (date_fin - date_debut).days + 1
-                    if nb_jours > 90:
+                    if nb_jours != 98:
                         raise forms.ValidationError(
-                            f"Le congé maternité ne peut pas dépasser 90 jours "
-                            f"(durée demandée : {nb_jours} jours)."
+                            f"Le congé maternité est fixé à 98 jours "
+                            f"(durée calculée : {nb_jours} jour(s)). "
+                            f"Sélectionnez une date de début pour que la date de retour soit calculée automatiquement."
                         )
                     if self.employe.sexe != 'F':
                         raise forms.ValidationError(
@@ -345,5 +347,25 @@ class EmployeProfilForm(FormClassMixin, forms.ModelForm):
 
     def clean_photo(self):
         return _valider_photo(self.cleaned_data.get('photo'))
+
+
+class UserCompteForm(FormClassMixin, forms.ModelForm):
+    """Modification du compte staff (RH/DAF/Admin sans fiche Employe liée).
+    Permet de modifier nom, prénom et e-mail du compte Django.
+    """
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'placeholder': 'Prénom'}),
+            'last_name':  forms.TextInput(attrs={'placeholder': 'Nom de famille'}),
+            'email':      forms.EmailInput(attrs={'placeholder': 'email@exemple.com'}),
+        }
+        labels = {
+            'first_name': 'Prénom',
+            'last_name':  'Nom de famille',
+            'email':      'Adresse e-mail',
+        }
 
 

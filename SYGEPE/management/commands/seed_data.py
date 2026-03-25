@@ -49,7 +49,11 @@ class Command(BaseCommand):
         self.stdout.write("   URL   : http://127.0.0.1:8000/")
 
     def _creer_groupes(self):
-        for nom in ['Admin', 'RH', 'Employé']:
+        for nom in [
+            'Admin', 'RH', 'DAF', 'Employé',
+            'Directeur Commercial', 'Responsable Logistique',
+            'Responsable Réabo', 'Chef Comptable',
+        ]:
             g, created = Group.objects.get_or_create(name=nom)
             if created:
                 self.stdout.write(f"  [OK] Groupe '{nom}' cree")
@@ -67,9 +71,12 @@ class Command(BaseCommand):
             ("Direction Générale", "Direction et stratégie de l'entreprise"),
             ("Ressources Humaines", "Gestion du personnel et recrutement"),
             ("Informatique", "Systèmes d'information et développement"),
-            ("Finance & Comptabilité", "Gestion financière et comptable"),
+            ("Comptabilité", "Gestion comptable et financière"),
             ("Commercial", "Ventes et développement commercial"),
             ("Logistique", "Supply chain et logistique"),
+            ("Réabo", "Gestion des réabonnements"),
+            ("Boutique", "Ventes en boutique"),
+            ("Finance", "Direction Administrative et Financière"),
         ]
         depts = []
         for nom, desc in data:
@@ -159,7 +166,7 @@ class Command(BaseCommand):
         self.stdout.write(f"  [OK] {count} enregistrements de presence crees")
 
     def _creer_conges(self, employes):
-        types = ['paye', 'maladie', 'exceptionnel']
+        types = ['paye', 'maternite']
         statuts = ['en_attente', 'approuve', 'approuve', 'refuse']
         count = 0
         admin = User.objects.get(username='admin')

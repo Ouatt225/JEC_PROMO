@@ -6,19 +6,9 @@
 
 {% block content %}
 
-<div class="filter-bar">
-  <form method="get" style="display: flex; gap: 12px; flex: 1; align-items: center; flex-wrap: wrap;">
-    <select name="statut" class="form-control" style="width: auto; min-width: 160px;">
-      <option value="">Tous les statuts</option>
-      <option value="en_attente" {% if statut_selectionne == 'en_attente' %}selected{% endif %}>En attente</option>
-      <option value="approuve"   {% if statut_selectionne == 'approuve'   %}selected{% endif %}>Approuvé</option>
-      <option value="refuse"     {% if statut_selectionne == 'refuse'     %}selected{% endif %}>Refusé</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Filtrer</button>
-    <a href="{% url 'liste_conges' %}" class="btn btn-outline">Réinitialiser</a>
-  </form>
-  <a href="{% url 'demander_conge' %}" class="btn btn-primary">+ Demander un congé</a>
-</div>
+{% url 'sygepe:liste_conges' as reset_url %}
+{% url 'sygepe:demander_conge' as action_url %}
+{% include 'SYGEPE/includes/filter_bar_statut.html' with reset_url=reset_url action_url=action_url action_label="+ Demander un congé" %}
 
 <div class="table-card">
   {% if conges %}
@@ -52,7 +42,7 @@
           <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.motif }}</td>
           <td><span class="badge-status badge-{{ c.statut }}">{{ c.get_statut_display }}</span></td>
           <td>
-            {% if c.statut == 'en_attente' %}
+            {% if c.pk in ids_validables %}
             <div style="display:flex;gap:6px;">
               <!-- Bouton Approuver -->
               <button type="button"
@@ -79,6 +69,9 @@
                 Rejeter
               </button>
             </div>
+            {% elif c.statut == 'en_attente' %}
+            {# En attente mais règle croisée : le rôle opposé doit traiter #}
+            <span style="color:#d97706;font-size:0.8rem;font-weight:600;" title="En attente du rôle compétent">⏳ En attente</span>
             {% else %}
               {% if c.statut == 'approuve' %}
                 <span style="color:#065F46;font-size:0.8rem;font-weight:600;">✔ Approuvé</span>
@@ -95,11 +88,9 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-icon">🏖️</div>
-    <p>Aucune demande de congé. <a href="{% url 'demander_conge' %}" style="color:var(--primary);">Faire une demande</a></p>
-  </div>
+  {% include 'SYGEPE/includes/empty_state.html' with empty_icon="🏖️" empty_message="Aucune demande de congé." empty_action_url=action_url empty_action_label="Faire une demande" %}
   {% endif %}
+  {% include 'SYGEPE/includes/pagination.html' with page_obj=conges page_range=page_range params=params %}
 </div>
 
 <!-- ── MODALE DE DÉCISION ──────────────────────────────── -->
@@ -160,7 +151,7 @@ function ouvrirModal(pk, decision, nomEmploye) {
 
   // Action du formulaire  (le placeholder __PK__ est remplacé dynamiquement)
   document.getElementById('decision-form').action =
-    '{% url "valider_conge" 0 %}'.replace('/0/', '/' + pk + '/');
+    '{% url "sygepe:valider_conge" 0 %}'.replace('/0/', '/' + pk + '/');
   document.getElementById('modal-statut').value    = decision;
 
   // Icône & couleur

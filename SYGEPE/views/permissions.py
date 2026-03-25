@@ -10,6 +10,7 @@ from django.utils import timezone
 from ..forms import PermissionForm, ValidationPermissionForm
 from ..models import Employe, Permission
 from ..services.audit import log_action
+from ..services.email import notifier_statut_permission
 from .decorators import (
     dept_a_premier_valideur,
     get_departement_responsable,
@@ -19,6 +20,7 @@ from .decorators import (
     is_responsable,
     paginer,
     peut_faire_premiere_validation,
+    peut_valider_pour,
     rh_requis,
 )
 
@@ -62,12 +64,16 @@ def liste_permissions(request):
     if is_rh(user) or is_responsable(user):
         for p in permissions:
             if p.statut == 'en_attente' and peut_faire_premiere_validation(user, p.employe):
+                # Étape 1 : responsable valide son département — pas de règle croisée
                 peut_premier_ids.add(p.pk)
             elif p.statut == 'en_attente' and is_rh(user) and not dept_a_premier_valideur(p.employe):
-                # Pas de responsable désigné → RH valide directement
-                peut_final_ids.add(p.pk)
+                # Pas de responsable désigné → RH/DAF valide directement (règle croisée)
+                if peut_valider_pour(user, p.employe):
+                    peut_final_ids.add(p.pk)
             elif p.statut == 'valide_responsable' and is_rh(user):
-                peut_final_ids.add(p.pk)
+                # Étape 2 : DRH/DAF valide après le responsable (règle croisée)
+                if peut_valider_pour(user, p.employe):
+                    peut_final_ids.add(p.pk)
 
     context = {
         'permissions':        permissions,
@@ -122,16 +128,26 @@ def valider_permission(request, pk):
     perm = get_object_or_404(Permission, pk=pk)
     user = request.user
 
-    # Déterminer si l'utilisateur peut agir et à quelle étape
+    # Règle croisée RH/DAF : pour un employé RH ou DAF, validation directe
+    # par le rôle opposé uniquement (bypass du circuit responsable)
+    employe_role = getattr(perm.employe, 'role', None)
     etape = None
-    if perm.statut == 'en_attente':
-        if peut_faire_premiere_validation(user, perm.employe):
-            etape = 1
-        elif is_rh(user) and not dept_a_premier_valideur(perm.employe):
-            # Département sans responsable désigné → DRH valide directement
+
+    if employe_role in ('rh', 'daf'):
+        if not peut_valider_pour(user, perm.employe):
+            raise PermissionDenied
+        if perm.statut not in ('en_attente', 'valide_responsable'):
+            raise PermissionDenied
+        etape = 2  # Validation directe, pas de circuit responsable
+    else:
+        # Circuit normal 2 étapes
+        if perm.statut == 'en_attente':
+            if peut_faire_premiere_validation(user, perm.employe):
+                etape = 1
+            elif is_rh(user) and not dept_a_premier_valideur(perm.employe):
+                etape = 2
+        elif perm.statut == 'valide_responsable' and is_rh(user):
             etape = 2
-    elif perm.statut == 'valide_responsable' and is_rh(user):
-        etape = 2
 
     if etape is None:
         raise PermissionDenied
@@ -159,6 +175,7 @@ def valider_permission(request, pk):
                     f"(étape {etape}) : {statut_msg}",
                     employe=p.employe,
                 )
+            notifier_statut_permission(p)  # e-mail hors transaction (fail silencieux)
             messages.success(request, f"Permission {statut_msg}.")
             return redirect('sygepe:liste_permissions')
     else:
@@ -170,3 +187,28 @@ def valider_permission(request, pk):
         'etape':      etape,
     }
     return render(request, 'SYGEPE/permissions/valider.html', context)
+
+
+@login_required
+def mes_permissions_perso(request):
+    """Permissions personnelles de l'utilisateur connecté — mode employé forcé.
+
+    Utilisé par RH/DAF/Admin qui ont une fiche Employe et veulent voir
+    uniquement leurs propres permissions (espace employé), indépendamment de leur rôle.
+    """
+    employe = get_employe_or_none(request.user)
+    if not employe:
+        return redirect('sygepe:profil')
+
+    statut = request.GET.get('statut', '')
+    permissions = Permission.objects.filter(employe=employe).select_related('employe__departement')
+    if statut:
+        permissions = permissions.filter(statut=statut)
+
+    permissions, page_range = paginer(permissions, request)
+    return render(request, 'SYGEPE/espace_employe/mes_permissions.html', {
+        'permissions':       permissions,
+        'page_range':        page_range,
+        'params':            get_params(request),
+        'statut_selectionne': statut,
+    })

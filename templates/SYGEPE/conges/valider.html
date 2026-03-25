@@ -62,9 +62,13 @@
     <div class="form-group" style="margin-bottom:28px;">
       <label style="font-weight:600;margin-bottom:8px;display:block;">
         Commentaire
-        <span style="font-weight:400;color:var(--text-muted);font-size:0.82rem;">(optionnel)</span>
+        <span id="comment-required-hint" style="font-weight:400;color:var(--text-muted);font-size:0.82rem;">(optionnel)</span>
+        <span id="comment-required-label" style="display:none;font-weight:600;color:#dc2626;font-size:0.82rem;">* obligatoire en cas de rejet</span>
       </label>
       {{ form.commentaire_valideur }}
+      {% if form.commentaire_valideur.errors %}
+      <small style="color:#dc2626;">{{ form.commentaire_valideur.errors.0 }}</small>
+      {% endif %}
     </div>
 
     <!-- Deux boutons de décision -->
@@ -97,7 +101,7 @@
     </div>
 
     <div style="text-align:center;">
-      <a href="{% url 'liste_conges' %}" class="btn btn-outline" style="font-size:0.88rem;">
+      <a href="{% url 'sygepe:liste_conges' %}" class="btn btn-outline" style="font-size:0.88rem;">
         ← Retour à la liste
       </a>
     </div>
@@ -132,6 +136,17 @@
 let decisionEnCours = '';
 
 function confirmerDecision(decision, titre, corps) {
+  const commentaire = document.getElementById('id_commentaire_valideur').value.trim();
+
+  // Commentaire obligatoire pour un rejet
+  if (decision === 'refuse' && !commentaire) {
+    document.getElementById('id_commentaire_valideur').focus();
+    document.getElementById('id_commentaire_valideur').style.borderColor = '#dc2626';
+    document.getElementById('comment-required-label').style.display = 'inline';
+    document.getElementById('comment-required-hint').style.display = 'none';
+    return;
+  }
+
   decisionEnCours = decision;
   document.getElementById('modal-title').textContent = titre;
   document.getElementById('modal-body').textContent  = corps;

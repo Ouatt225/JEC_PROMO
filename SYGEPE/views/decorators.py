@@ -117,6 +117,24 @@ def dept_a_premier_valideur(employe):
     return employe.departement.nom in DEPT_PREMIER_VALIDEUR
 
 
+def peut_valider_pour(user, employe):
+    """Règle croisée RH ↔ DAF pour validation des congés/permissions du staff.
+
+    - Demande d'un RH  → seuls DAF ou Admin peuvent valider (pas un autre RH)
+    - Demande d'un DAF → seuls RH  ou Admin peuvent valider (pas un autre DAF)
+    - Sinon            → tout staff (is_rh) peut valider
+    """
+    if not employe:
+        return is_rh(user)
+    groupes = _groupes_utilisateur(user)
+    role = employe.role
+    if role == 'rh':
+        return 'DAF' in groupes or user.is_superuser or 'Admin' in groupes
+    if role == 'daf':
+        return 'RH' in groupes or user.is_superuser or 'Admin' in groupes
+    return is_rh(user)
+
+
 def rh_requis(f):
     """Décorateur : accès réservé aux rôles RH et Admin. Lève 403 si refusé."""
     @wraps(f)

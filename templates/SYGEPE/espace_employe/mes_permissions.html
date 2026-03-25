@@ -5,7 +5,7 @@
 {% block page_subtitle %}Historique de vos demandes de permission{% endblock %}
 
 {% block page_actions %}
-<a href="{% url 'demander_permission' %}" class="ec-btn-primary">
+<a href="{% url 'sygepe:demander_permission' %}" class="ec-btn-primary">
   <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
   Nouvelle demande
 </a>
@@ -30,13 +30,14 @@
   <label style="font-size:0.82rem; font-weight:600; color:var(--ec-muted);">Filtrer par statut :</label>
   <select name="statut" onchange="this.form.submit()">
     <option value="">Tous</option>
-    <option value="en_attente" {% if statut_selectionne == 'en_attente' %}selected{% endif %}>En attente</option>
-    <option value="approuve"   {% if statut_selectionne == 'approuve' %}selected{% endif %}>Approuvé</option>
-    <option value="refuse"     {% if statut_selectionne == 'refuse' %}selected{% endif %}>Refusé</option>
-    <option value="annule"     {% if statut_selectionne == 'annule' %}selected{% endif %}>Annulé</option>
+    <option value="en_attente"         {% if statut_selectionne == 'en_attente' %}selected{% endif %}>En attente</option>
+    <option value="valide_responsable" {% if statut_selectionne == 'valide_responsable' %}selected{% endif %}>Validé par responsable</option>
+    <option value="approuve"           {% if statut_selectionne == 'approuve' %}selected{% endif %}>Approuvé</option>
+    <option value="refuse"             {% if statut_selectionne == 'refuse' %}selected{% endif %}>Refusé</option>
+    <option value="annule"             {% if statut_selectionne == 'annule' %}selected{% endif %}>Annulé</option>
   </select>
   {% if statut_selectionne %}
-  <a href="{% url 'liste_permissions' %}" class="ec-btn-outline" style="padding:7px 14px;">Réinitialiser</a>
+  <a href="{% url 'sygepe:liste_permissions' %}" class="ec-btn-outline" style="padding:7px 14px;">Réinitialiser</a>
   {% endif %}
 </form>
 
@@ -81,7 +82,7 @@
     {% if statut_selectionne %}Aucune demande avec ce statut.
     {% else %}Vous n'avez aucune demande de permission pour le moment.{% endif %}
     <br><br>
-    <a href="{% url 'demander_permission' %}" class="ec-btn-primary">Faire une demande</a>
+    <a href="{% url 'sygepe:demander_permission' %}" class="ec-btn-primary">Faire une demande</a>
   </div>
   {% endif %}
 </div>

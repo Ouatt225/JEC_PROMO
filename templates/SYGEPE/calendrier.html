@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     buttonText: { today: "Aujourd'hui", month: 'Mois', list: 'Liste' },
     height: 'auto',
-    events: '{% url "api_calendrier_events" %}',
+    events: '{% url "sygepe:api_calendrier_events" %}',
     eventClick: function (info) {
       const p  = info.event.extendedProps;
       const s  = info.event.start;

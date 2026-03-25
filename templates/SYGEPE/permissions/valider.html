@@ -2,11 +2,16 @@
 
 {% block title %}Valider la permission{% endblock %}
 {% block page_title %}Validation de permission{% endblock %}
-{% block page_subtitle %}Approuver ou refuser la demande{% endblock %}
+{% block page_subtitle %}{% if etape == 1 %}Étape 1 — Validation du responsable{% else %}Étape 2 — Validation finale DRH{% endif %}{% endblock %}
 
 {% block content %}
 <div class="form-card">
-  <h2>✔️ Valider la demande de permission</h2>
+  <h2>{% if etape == 1 %}📋 Étape 1 : Valider la demande (responsable){% else %}✔️ Étape 2 : Approbation finale (DRH){% endif %}</h2>
+  {% if etape == 1 %}
+  <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.88rem;color:#1e40af;">
+    ℹ️ En validant, la demande sera transmise à la DRH pour approbation finale.
+  </div>
+  {% endif %}
 
   <div style="background: var(--bg); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 24px;">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9rem;">
@@ -27,13 +32,14 @@
         {{ form.statut }}
       </div>
       <div class="form-group">
-        <label>Commentaire (optionnel)</label>
+        <label>Commentaire <span style="color:#dc2626;font-size:0.82rem;">* obligatoire en cas de refus</span></label>
         {{ form.commentaire_valideur }}
+        {% if form.commentaire_valideur.errors %}<small style="color:#dc2626;">{{ form.commentaire_valideur.errors.0 }}</small>{% endif %}
       </div>
     </div>
     <div class="form-actions">
       <button type="submit" class="btn btn-primary">✔ Confirmer la décision</button>
-      <a href="{% url 'liste_permissions' %}" class="btn btn-outline">Annuler</a>
+      <a href="{% url 'sygepe:liste_permissions' %}" class="btn btn-outline">Annuler</a>
     </div>
   </form>
 </div>

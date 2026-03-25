@@ -1506,3 +1506,42 @@ textarea { resize: vertical; min-height: 90px; }
 @media (min-width: 901px) {
   .charts-grid { grid-template-columns: 2fr 1fr; }
 }
+
+/* ════════════════════════════════════════
+   GRILLES UTILITAIRES RESPONSIVE
+   Remplacent les grid inline-style des templates
+   ════════════════════════════════════════ */
+
+/* Mise en page profil : carte latérale + contenu */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1fr;   /* Mobile : colonne unique */
+  gap: 24px;
+}
+@media (min-width: 769px) {
+  .profile-layout { grid-template-columns: 300px 1fr; }
+}
+
+/* Grille 2 colonnes (fiches, résumés) */
+.col-2-grid {
+  display: grid;
+  grid-template-columns: 1fr;   /* Mobile : colonne unique */
+  gap: 16px;
+}
+@media (min-width: 601px) {
+  .col-2-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Grille 3 colonnes (métriques supplémentaires dashboard) */
+.quick-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;   /* Mobile */
+  gap: 16px;
+  margin-bottom: 24px;
+}
+@media (min-width: 481px) {
+  .quick-grid-3 { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 769px) {
+  .quick-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}

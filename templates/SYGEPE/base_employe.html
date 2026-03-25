@@ -1,711 +1,647 @@
+{% extends 'SYGEPE/base_root.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Mon Espace{% endblock %} — Espace Contractuel</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --ec-navy:          #141B2D;
-      --ec-navy-light:    #1A2338;
-      --ec-navy-hover:    #1F2B42;
-      --ec-accent:        #E8822A;
-      --ec-green:         #1B5E20;
-      --ec-green-lt:      #2E7D32;
-      --ec-orange:        #E67E22;
-      --ec-red:           #C62828;
-      --ec-bg:            #EEEEEE;
-      --ec-white:         #FFFFFF;
-      --ec-text:          #1C1C2E;
-      --ec-muted:         #9CA3AF;
-      --ec-border:        #E0E0E0;
-      --ec-row-even:      #F9F9F9;
-    }
+{% block title_tag %}{% block title %}Mon Espace{% endblock %} — Espace Contractuel{% endblock %}
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--ec-bg);
-      color: var(--ec-text);
-      min-height: 100vh;
-    }
+{% block head_extra %}
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ════════════════════════════
-       LAYOUT
-    ════════════════════════════ */
-    .ec-layout {
-      display: flex;
-      min-height: 100vh;
-    }
+  :root {
+    --ec-navy:          #141B2D;
+    --ec-navy-light:    #1A2338;
+    --ec-navy-hover:    #1F2B42;
+    --ec-accent:        #E8822A;
+    --ec-green:         #1B5E20;
+    --ec-green-lt:      #2E7D32;
+    --ec-orange:        #E67E22;
+    --ec-red:           #C62828;
+    --ec-bg:            #EEEEEE;
+    --ec-white:         #FFFFFF;
+    --ec-text:          #1C1C2E;
+    --ec-muted:         #9CA3AF;
+    --ec-border:        #E0E0E0;
+    --ec-row-even:      #F9F9F9;
+  }
 
-    /* ════════════════════════════
-       SIDEBAR
-    ════════════════════════════ */
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ec-bg);
+    color: var(--ec-text);
+    min-height: 100vh;
+  }
+
+  /* ════════════════════════════
+     LAYOUT
+  ════════════════════════════ */
+  .ec-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ════════════════════════════
+     SIDEBAR
+  ════════════════════════════ */
+  .ec-sidebar {
+    width: 255px;
+    min-height: 100vh;
+    background: var(--ec-navy);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  /* Brand */
+  .ec-brand {
+    padding: 26px 20px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .ec-brand-icon {
+    width: 50px; height: 50px;
+    background: var(--ec-accent);
+    border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 13px;
+    box-shadow: 0 4px 12px rgba(232,130,42,0.35);
+  }
+
+  .ec-brand-icon svg {
+    width: 27px; height: 27px;
+  }
+
+  .ec-brand-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: 0.2px;
+  }
+
+  .ec-brand-name {
+    font-size: 0.76rem;
+    color: var(--ec-muted);
+    margin-top: 4px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* Nav */
+  .ec-nav {
+    flex: 1;
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .ec-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 13px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.865rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.60);
+    transition: background 0.18s, color 0.18s;
+    border-left: 3px solid transparent;
+  }
+
+  .ec-nav-item:hover {
+    background: var(--ec-navy-hover);
+    color: rgba(255,255,255,0.90);
+  }
+
+  .ec-nav-item.active {
+    background: var(--ec-navy-hover);
+    color: #FFFFFF;
+    border-left-color: var(--ec-accent);
+  }
+
+  .ec-nav-item svg {
+    width: 17px; height: 17px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  /* Logout */
+  .ec-logout {
+    padding: 14px 14px 20px;
+  }
+
+  .ec-logout-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; width: 100%; padding: 12px;
+    background: var(--ec-red);
+    color: white; text-decoration: none;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.7px; text-transform: uppercase;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .ec-logout-btn:hover { background: #e53935; color: white; transform: scale(1.01); box-shadow: 0 4px 14px rgba(229,57,53,0.45); }
+
+  .ec-logout-btn svg {
+    width: 15px; height: 15px;
+    stroke: white; fill: none;
+    stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  /* ════════════════════════════
+     MAIN
+  ════════════════════════════ */
+  .ec-main {
+    margin-left: 255px;
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Topbar */
+  .ec-topbar {
+    background: var(--ec-white);
+    padding: 18px 30px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--ec-border);
+  }
+
+  .ec-page-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.65rem; font-weight: 800;
+    color: var(--ec-text);
+  }
+
+  .ec-page-subtitle {
+    font-size: 0.83rem; color: var(--ec-muted); margin-top: 2px;
+  }
+
+  /* Content */
+  .ec-content {
+    padding: 26px 30px;
+    flex: 1;
+  }
+
+  /* ════════════════════════════
+     MESSAGES
+  ════════════════════════════ */
+  .ec-msg {
+    padding: 12px 18px; border-radius: 8px;
+    margin-bottom: 16px; font-size: 0.87rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ec-msg-success { background: #E8F5E9; color: #1B5E20; border-left: 4px solid #2E7D32; }
+  .ec-msg-error   { background: #FFEBEE; color: #C62828; border-left: 4px solid #C62828; }
+  .ec-msg-warning { background: #FFF8E1; color: #E65100; border-left: 4px solid #F57F17; }
+  .ec-msg-info    { background: #E3F2FD; color: #0D47A1; border-left: 4px solid #1565C0; }
+
+  /* ════════════════════════════
+     SECTION CARD
+  ════════════════════════════ */
+  .ec-section {
+    background: var(--ec-white);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  }
+
+  .ec-section-header {
+    background: var(--ec-green);
+    color: #fff;
+    padding: 11px 20px;
+    display: flex; align-items: center; gap: 9px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.84rem; font-weight: 700;
+    letter-spacing: 0.7px; text-transform: uppercase;
+  }
+
+  .ec-section-header svg {
+    width: 16px; height: 16px;
+    stroke: white; fill: none;
+    stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  /* ════════════════════════════
+     INFO TABLE
+  ════════════════════════════ */
+  .ec-info-table {
+    width: 100%; border-collapse: collapse; font-size: 0.875rem;
+  }
+
+  .ec-info-table tr:nth-child(even) td { background: var(--ec-row-even); }
+
+  .ec-info-table td {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--ec-border);
+    vertical-align: middle;
+  }
+
+  .ec-info-table td.lbl {
+    font-weight: 600; color: var(--ec-text); white-space: nowrap;
+    width: 200px;
+  }
+
+  .ec-info-table td.val {
+    color: var(--ec-orange); font-weight: 600;
+  }
+
+  /* ════════════════════════════
+     PHOTO ZONE
+  ════════════════════════════ */
+  .ec-photo-zone {
+    padding: 18px 22px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; flex-shrink: 0;
+    border-left: 1px solid var(--ec-border);
+  }
+
+  .ec-photo-img {
+    width: 110px; height: 130px;
+    object-fit: cover;
+    border: 2px solid var(--ec-border);
+    display: block;
+  }
+
+  .ec-photo-placeholder {
+    width: 110px; height: 130px;
+    background: #E8E8E8;
+    display: flex; align-items: center; justify-content: center;
+    color: #9CA3AF; font-size: 2rem;
+    font-family: 'Outfit', sans-serif; font-weight: 700;
+    border: 2px solid var(--ec-border);
+  }
+
+  .ec-photo-id {
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--ec-text); text-align: center;
+  }
+
+  /* ════════════════════════════
+     BUTTONS
+  ════════════════════════════ */
+  .ec-btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px;
+    background: var(--ec-green); color: white;
+    border: none; border-radius: 50px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    text-decoration: none; cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .ec-btn-primary:hover { background: var(--ec-green-lt); color: white; transform: scale(1.02); }
+  .ec-btn-primary svg { width: 15px; height: 15px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .ec-btn-outline {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 18px;
+    background: transparent; color: var(--ec-green);
+    border: 1.5px solid var(--ec-green); border-radius: 50px;
+    font-size: 0.82rem; font-weight: 600;
+    text-decoration: none; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ec-btn-outline:hover { background: var(--ec-green); color: white; }
+  .ec-btn-outline svg { width: 15px; height: 15px; stroke: var(--ec-green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ec-btn-outline:hover svg { stroke: white; }
+
+  /* ════════════════════════════
+     DATA TABLE (congés / perms)
+  ════════════════════════════ */
+  .ec-table {
+    width: 100%; border-collapse: collapse; font-size: 0.865rem;
+  }
+
+  .ec-table thead tr { background: #F5F5F5; }
+
+  .ec-table th {
+    padding: 10px 20px; text-align: left;
+    font-size: 0.74rem; font-weight: 700;
+    color: var(--ec-muted); text-transform: uppercase;
+    letter-spacing: 0.5px; border-bottom: 2px solid var(--ec-border);
+  }
+
+  .ec-table td {
+    padding: 11px 20px; border-bottom: 1px solid var(--ec-border);
+  }
+
+  .ec-table tbody tr:hover { background: #FAFAFA; }
+
+  /* ════════════════════════════
+     BADGE STATUT
+  ════════════════════════════ */
+  .ec-badge {
+    display: inline-block; padding: 3px 12px; border-radius: 50px;
+    font-size: 0.74rem; font-weight: 700; letter-spacing: 0.2px;
+  }
+  .ec-badge-approuve   { background: #E8F5E9; color: #2E7D32; }
+  .ec-badge-en_attente { background: #FFF8E1; color: #E65100; }
+  .ec-badge-refuse     { background: #FFEBEE; color: #C62828; }
+  .ec-badge-annule     { background: #F5F5F5; color: #757575; }
+
+  /* ════════════════════════════
+     EMPTY STATE
+  ════════════════════════════ */
+  .ec-empty {
+    text-align: center; padding: 34px;
+    color: var(--ec-muted); font-size: 0.88rem;
+  }
+
+  /* ════════════════════════════
+     FORM
+  ════════════════════════════ */
+  .ec-form-body { padding: 24px 28px; }
+
+  .ec-form-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  }
+
+  .ec-form-group { display: flex; flex-direction: column; gap: 6px; }
+  .ec-form-group.full { grid-column: 1 / -1; }
+
+  .ec-form-label {
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--ec-text);
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+
+  .ec-form-control {
+    padding: 9px 13px;
+    border: 1.5px solid var(--ec-border); border-radius: 8px;
+    font-size: 0.87rem; font-family: 'Inter', sans-serif;
+    background: #FAFAFA; color: var(--ec-text);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .ec-form-control:focus { outline: none; border-color: var(--ec-green); background: white; }
+
+  select.ec-form-control { cursor: pointer; }
+  textarea.ec-form-control { resize: vertical; min-height: 90px; }
+
+  .ec-form-error { font-size: 0.78rem; color: var(--ec-red); margin-top: 2px; }
+
+  .ec-form-actions {
+    display: flex; gap: 12px; margin-top: 24px;
+    padding-top: 18px; border-top: 1px solid var(--ec-border);
+  }
+
+  /* ════════════════════════════
+     GRILLES UTILITAIRES
+  ════════════════════════════ */
+  .ec-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .ec-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  @media (max-width: 768px) {
+    .ec-grid-2 { grid-template-columns: 1fr; }
+    .ec-grid-3 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .ec-grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ════════════════════════════
+     HAMBURGER (mobile seulement)
+  ════════════════════════════ */
+  .ec-hamburger {
+    display: none;
+    align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    background: none; border: none; cursor: pointer;
+    border-radius: 8px; margin-right: 10px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .ec-hamburger:hover { background: rgba(0,0,0,0.06); }
+  .ec-hamburger svg { width: 22px; height: 22px; stroke: var(--ec-text); fill: none; stroke-width: 2; stroke-linecap: round; }
+
+  /* Overlay sidebar mobile */
+  .ec-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 90;
+  }
+  .ec-overlay.open { display: block; }
+
+  /* ════════════════════════════
+     RESPONSIVE — TABLETTE (≤768px)
+  ════════════════════════════ */
+  @media (max-width: 768px) {
+    .ec-hamburger { display: flex; }
+
     .ec-sidebar {
-      width: 255px;
-      min-height: 100vh;
-      background: var(--ec-navy);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      left: 0; top: 0; bottom: 0;
-      z-index: 100;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 200;
     }
+    .ec-sidebar.open { transform: translateX(0); }
 
-    /* Brand */
-    .ec-brand {
-      padding: 26px 20px 22px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
+    .ec-main { margin-left: 0; }
 
-    .ec-brand-icon {
-      width: 50px; height: 50px;
-      background: var(--ec-accent);
-      border-radius: 13px;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 13px;
-      box-shadow: 0 4px 12px rgba(232,130,42,0.35);
-    }
+    .ec-topbar { padding: 14px 16px; }
+    .ec-content { padding: 16px; }
 
-    .ec-brand-icon svg {
-      width: 27px; height: 27px;
-    }
+    .ec-form-grid { grid-template-columns: 1fr; }
 
-    .ec-brand-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.98rem;
-      font-weight: 700;
-      color: #FFFFFF;
-      letter-spacing: 0.2px;
-    }
+    .ec-info-table td.lbl { width: 140px; }
 
-    .ec-brand-name {
-      font-size: 0.76rem;
-      color: var(--ec-muted);
-      margin-top: 4px;
-      font-weight: 500;
-      line-height: 1.4;
-    }
-
-    /* Nav */
-    .ec-nav {
-      flex: 1;
-      padding: 14px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      overflow-y: auto;
-    }
-
-    .ec-nav-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 13px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-size: 0.865rem;
-      font-weight: 500;
-      color: rgba(255,255,255,0.60);
-      transition: background 0.18s, color 0.18s;
-      border-left: 3px solid transparent;
-    }
-
-    .ec-nav-item:hover {
-      background: var(--ec-navy-hover);
-      color: rgba(255,255,255,0.90);
-    }
-
-    .ec-nav-item.active {
-      background: var(--ec-navy-hover);
-      color: #FFFFFF;
-      border-left-color: var(--ec-accent);
-    }
-
-    .ec-nav-item svg {
-      width: 17px; height: 17px;
-      stroke: currentColor; fill: none;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-      flex-shrink: 0;
-    }
-
-    /* Logout */
-    .ec-logout {
-      padding: 14px 14px 20px;
-    }
-
-    .ec-logout-btn {
-      display: flex; align-items: center; justify-content: center;
-      gap: 8px; width: 100%; padding: 12px;
-      background: var(--ec-red);
-      color: white; text-decoration: none;
-      border-radius: 12px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.8rem; font-weight: 700;
-      letter-spacing: 0.7px; text-transform: uppercase;
-      transition: background 0.2s, transform 0.15s;
-    }
-
-    .ec-logout-btn:hover { background: #B71C1C; color: white; transform: scale(1.01); }
-
-    .ec-logout-btn svg {
-      width: 15px; height: 15px;
-      stroke: white; fill: none;
-      stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
-    }
-
-    /* ════════════════════════════
-       MAIN
-    ════════════════════════════ */
-    .ec-main {
-      margin-left: 255px;
-      flex: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Topbar */
-    .ec-topbar {
-      background: var(--ec-white);
-      padding: 18px 30px;
-      display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--ec-border);
-    }
-
-    .ec-page-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.65rem; font-weight: 800;
-      color: var(--ec-text);
-    }
-
-    .ec-page-subtitle {
-      font-size: 0.83rem; color: var(--ec-muted); margin-top: 2px;
-    }
-
-    /* Content */
-    .ec-content {
-      padding: 26px 30px;
-      flex: 1;
-    }
-
-    /* ════════════════════════════
-       MESSAGES
-    ════════════════════════════ */
-    .ec-msg {
-      padding: 12px 18px; border-radius: 8px;
-      margin-bottom: 16px; font-size: 0.87rem;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .ec-msg-success { background: #E8F5E9; color: #1B5E20; border-left: 4px solid #2E7D32; }
-    .ec-msg-error   { background: #FFEBEE; color: #C62828; border-left: 4px solid #C62828; }
-    .ec-msg-warning { background: #FFF8E1; color: #E65100; border-left: 4px solid #F57F17; }
-    .ec-msg-info    { background: #E3F2FD; color: #0D47A1; border-left: 4px solid #1565C0; }
-
-    /* ════════════════════════════
-       SECTION CARD
-    ════════════════════════════ */
-    .ec-section {
-      background: var(--ec-white);
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 22px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-    }
-
-    .ec-section-header {
-      background: var(--ec-green);
-      color: #fff;
-      padding: 11px 20px;
-      display: flex; align-items: center; gap: 9px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.84rem; font-weight: 700;
-      letter-spacing: 0.7px; text-transform: uppercase;
-    }
-
-    .ec-section-header svg {
-      width: 16px; height: 16px;
-      stroke: white; fill: none;
-      stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
-    }
-
-    /* ════════════════════════════
-       INFO TABLE
-    ════════════════════════════ */
-    .ec-info-table {
-      width: 100%; border-collapse: collapse; font-size: 0.875rem;
-    }
-
-    .ec-info-table tr:nth-child(even) td { background: var(--ec-row-even); }
-
-    .ec-info-table td {
-      padding: 10px 20px;
-      border-bottom: 1px solid var(--ec-border);
-      vertical-align: middle;
-    }
-
-    .ec-info-table td.lbl {
-      font-weight: 600; color: var(--ec-text); white-space: nowrap;
-      width: 200px;
-    }
-
-    .ec-info-table td.val {
-      color: var(--ec-orange); font-weight: 600;
-    }
-
-    /* ════════════════════════════
-       PHOTO ZONE
-    ════════════════════════════ */
     .ec-photo-zone {
-      padding: 18px 22px;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 10px; flex-shrink: 0;
-      border-left: 1px solid var(--ec-border);
+      border-left: none;
+      border-top: 1px solid var(--ec-border);
+      padding: 16px;
     }
 
-    .ec-photo-img {
-      width: 110px; height: 130px;
-      object-fit: cover;
-      border: 2px solid var(--ec-border);
-      display: block;
-    }
+    .notif-dropdown { width: 280px; right: -40px; }
+  }
 
-    .ec-photo-placeholder {
-      width: 110px; height: 130px;
-      background: #E8E8E8;
-      display: flex; align-items: center; justify-content: center;
-      color: #9CA3AF; font-size: 2rem;
-      font-family: 'Outfit', sans-serif; font-weight: 700;
-      border: 2px solid var(--ec-border);
-    }
+  /* ════════════════════════════
+     RESPONSIVE — MOBILE (≤480px)
+  ════════════════════════════ */
+  @media (max-width: 480px) {
+    .ec-page-title { font-size: 1.25rem; }
+    .ec-page-subtitle { font-size: 0.78rem; }
+    .ec-topbar { padding: 10px 12px; gap: 8px; }
+    .ec-content { padding: 12px; }
 
-    .ec-photo-id {
-      font-size: 0.78rem; font-weight: 700;
-      color: var(--ec-text); text-align: center;
-    }
+    .ec-table th, .ec-table td { padding: 8px 12px; font-size: 0.82rem; }
+    .ec-info-table td { padding: 8px 12px; }
+    .ec-info-table td.lbl { width: 120px; font-size: 0.82rem; }
 
-    /* ════════════════════════════
-       BUTTONS
-    ════════════════════════════ */
-    .ec-btn-primary {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 11px 22px;
-      background: var(--ec-green); color: white;
-      border: none; border-radius: 50px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.8rem; font-weight: 700;
-      letter-spacing: 0.5px; text-transform: uppercase;
-      text-decoration: none; cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-    }
-    .ec-btn-primary:hover { background: var(--ec-green-lt); color: white; transform: scale(1.02); }
-    .ec-btn-primary svg { width: 15px; height: 15px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .ec-btn-primary, .ec-btn-outline { padding: 9px 16px; font-size: 0.78rem; }
 
-    .ec-btn-outline {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 9px 18px;
-      background: transparent; color: var(--ec-green);
-      border: 1.5px solid var(--ec-green); border-radius: 50px;
-      font-size: 0.82rem; font-weight: 600;
-      text-decoration: none; cursor: pointer;
-      transition: all 0.2s;
-    }
-    .ec-btn-outline:hover { background: var(--ec-green); color: white; }
+    .ec-form-body { padding: 16px; }
+  }
 
-    /* ════════════════════════════
-       DATA TABLE (congés / perms)
-    ════════════════════════════ */
-    .ec-table {
-      width: 100%; border-collapse: collapse; font-size: 0.865rem;
-    }
+  {% block extra_css %}{% endblock %}
+</style>
+{% endblock %}
 
-    .ec-table thead tr { background: #F5F5F5; }
+{% block layout %}
+<div class="ec-layout">
 
-    .ec-table th {
-      padding: 10px 20px; text-align: left;
-      font-size: 0.74rem; font-weight: 700;
-      color: var(--ec-muted); text-transform: uppercase;
-      letter-spacing: 0.5px; border-bottom: 2px solid var(--ec-border);
-    }
+  <!-- ── SIDEBAR ────────────────────────── -->
+  <aside class="ec-sidebar">
 
-    .ec-table td {
-      padding: 11px 20px; border-bottom: 1px solid var(--ec-border);
-    }
-
-    .ec-table tbody tr:hover { background: #FAFAFA; }
-
-    /* ════════════════════════════
-       BADGE STATUT
-    ════════════════════════════ */
-    .ec-badge {
-      display: inline-block; padding: 3px 12px; border-radius: 50px;
-      font-size: 0.74rem; font-weight: 700; letter-spacing: 0.2px;
-    }
-    .ec-badge-approuve   { background: #E8F5E9; color: #2E7D32; }
-    .ec-badge-en_attente { background: #FFF8E1; color: #E65100; }
-    .ec-badge-refuse     { background: #FFEBEE; color: #C62828; }
-    .ec-badge-annule     { background: #F5F5F5; color: #757575; }
-
-    /* ════════════════════════════
-       EMPTY STATE
-    ════════════════════════════ */
-    .ec-empty {
-      text-align: center; padding: 34px;
-      color: var(--ec-muted); font-size: 0.88rem;
-    }
-
-    /* ════════════════════════════
-       FORM
-    ════════════════════════════ */
-    .ec-form-body { padding: 24px 28px; }
-
-    .ec-form-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
-    }
-
-    .ec-form-group { display: flex; flex-direction: column; gap: 6px; }
-    .ec-form-group.full { grid-column: 1 / -1; }
-
-    .ec-form-label {
-      font-size: 0.78rem; font-weight: 700;
-      color: var(--ec-text);
-      text-transform: uppercase; letter-spacing: 0.4px;
-    }
-
-    .ec-form-control {
-      padding: 9px 13px;
-      border: 1.5px solid var(--ec-border); border-radius: 8px;
-      font-size: 0.87rem; font-family: 'Inter', sans-serif;
-      background: #FAFAFA; color: var(--ec-text);
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .ec-form-control:focus { outline: none; border-color: var(--ec-green); background: white; }
-
-    select.ec-form-control { cursor: pointer; }
-    textarea.ec-form-control { resize: vertical; min-height: 90px; }
-
-    .ec-form-error { font-size: 0.78rem; color: var(--ec-red); margin-top: 2px; }
-
-    .ec-form-actions {
-      display: flex; gap: 12px; margin-top: 24px;
-      padding-top: 18px; border-top: 1px solid var(--ec-border);
-    }
-
-    {% block extra_css %}{% endblock %}
-  </style>
-</head>
-<body>
-  <div class="ec-layout">
-
-    <!-- ── SIDEBAR ────────────────────────── -->
-    <aside class="ec-sidebar">
-
-      <div class="ec-brand">
-        <div class="ec-brand-icon">
-          <!-- Badge / carte ID -->
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="4" width="20" height="16" rx="3" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1.5"/>
-            <circle cx="8.5" cy="11" r="2.5" fill="white"/>
-            <path d="M5 17.5c0-1.93 1.57-3 3.5-3s3.5 1.07 3.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-            <line x1="14.5" y1="9.5" x2="19.5" y2="9.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="14.5" y1="12.5" x2="18" y2="12.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="ec-brand-title">Espace Contractuel</div>
-        <div class="ec-brand-name">
-          {% if request.user.employe %}{{ request.user.employe.get_full_name }}
-          {% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}
-        </div>
+    <div class="ec-brand">
+      <div class="ec-brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="20" height="16" rx="3" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1.5"/>
+          <circle cx="8.5" cy="11" r="2.5" fill="white"/>
+          <path d="M5 17.5c0-1.93 1.57-3 3.5-3s3.5 1.07 3.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <line x1="14.5" y1="9.5" x2="19.5" y2="9.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="14.5" y1="12.5" x2="18" y2="12.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
       </div>
+      <div class="ec-brand-title">Espace Contractuel</div>
+      <div class="ec-brand-name">
+        {% if request.user.employe %}{{ request.user.employe.get_full_name }}
+        {% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}
+      </div>
+    </div>
 
-      <nav class="ec-nav">
-        <a href="{% url 'profil' %}"
-           class="ec-nav-item {% if request.resolver_match.url_name == 'profil' %}active{% endif %}">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Mon Profil
-        </a>
+    {% comment %}Lien retour tableau de bord RH pour les staff (is_staff = RH/DAF/Admin){% endcomment %}
+    {% if request.user.is_staff or request.user.is_superuser %}
+    <a href="{% url 'sygepe:dashboard' %}"
+       style="display:flex; align-items:center; gap:10px; margin:10px 12px 0;
+              padding:9px 14px; border-radius:8px; font-size:0.82rem; font-weight:600;
+              background:rgba(232,130,42,0.15); color:#E8822A; text-decoration:none;">
+      <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#E8822A;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Tableau de bord RH
+    </a>
+    {% endif %}
 
-        <a href="{% url 'modifier_profil_employe' %}"
-           class="ec-nav-item {% if request.resolver_match.url_name == 'modifier_profil_employe' %}active{% endif %}">
-          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Modifier mon profil
-        </a>
+    <nav class="ec-nav">
+      <a href="{% url 'sygepe:profil' %}"
+         class="ec-nav-item {% if request.resolver_match.url_name == 'profil' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Mon Profil
+      </a>
 
-        <a href="{% url 'liste_conges' %}"
-           class="ec-nav-item {% if request.resolver_match.url_name == 'liste_conges' %}active{% endif %}">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Mes Congés
-        </a>
+      <a href="{% url 'sygepe:modifier_profil_employe' %}"
+         class="ec-nav-item {% if request.resolver_match.url_name == 'modifier_profil_employe' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Modifier mon profil
+      </a>
 
-        <a href="{% url 'demander_conge' %}"
-           class="ec-nav-item {% if request.resolver_match.url_name == 'demander_conge' %}active{% endif %}">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          Demander un congé
-        </a>
+      <a href="{% url 'sygepe:mes_conges_perso' %}"
+         class="ec-nav-item {% if request.resolver_match.url_name == 'mes_conges_perso' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Mes Congés
+      </a>
 
-        <a href="{% url 'liste_permissions' %}"
-           class="ec-nav-item {% if request.resolver_match.url_name == 'liste_permissions' %}active{% endif %}">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Mes Permissions
-        </a>
+      <a href="{% url 'sygepe:demander_conge' %}"
+         class="ec-nav-item {% if request.resolver_match.url_name == 'demander_conge' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Demander un congé
+      </a>
 
-        <a href="{% url 'demander_permission' %}"
-           class="ec-nav-item {% if request.resolver_match.url_name == 'demander_permission' %}active{% endif %}">
-          <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
-          Demander une permission
-        </a>
-      </nav>
+      <a href="{% url 'sygepe:mes_permissions_perso' %}"
+         class="ec-nav-item {% if request.resolver_match.url_name == 'mes_permissions_perso' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Mes Permissions
+      </a>
 
-      <div class="ec-logout">
-        <a href="{% url 'logout' %}" class="ec-logout-btn">
+      <a href="{% url 'sygepe:demander_permission' %}"
+         class="ec-nav-item {% if request.resolver_match.url_name == 'demander_permission' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+        Demander une permission
+      </a>
+    </nav>
+
+    <div class="ec-logout">
+      <form method="post" action="{% url 'sygepe:logout' %}" style="margin:0;padding:0;">
+        {% csrf_token %}
+        <button type="submit" class="ec-logout-btn"
+                style="width:100%;background:none;border:none;cursor:pointer;font:inherit;">
           <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Déconnexion
-        </a>
+        </button>
+      </form>
+    </div>
+
+  </aside>
+
+  <!-- Overlay sombre quand sidebar ouverte sur mobile -->
+  <div class="ec-overlay" id="ecOverlay"></div>
+
+  <!-- ── MAIN ───────────────────────────── -->
+  <main class="ec-main">
+
+    <div class="ec-topbar">
+      <button class="ec-hamburger" id="ecHamburger" aria-label="Ouvrir le menu">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div>
+        <h1 class="ec-page-title">{% block page_title %}{% endblock %}</h1>
+        <p class="ec-page-subtitle">{% block page_subtitle %}{% endblock %}</p>
       </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        {% include 'SYGEPE/includes/notifications.html' %}
+        {% block page_actions %}{% endblock %}
+      </div>
+    </div>
 
-    </aside>
+    <div class="ec-content">
 
-    <!-- ── MAIN ───────────────────────────── -->
-    <main class="ec-main">
-
-      <div class="ec-topbar">
-        <div>
-          <h1 class="ec-page-title">{% block page_title %}{% endblock %}</h1>
-          <p class="ec-page-subtitle">{% block page_subtitle %}{% endblock %}</p>
+      {% if messages %}
+        {% for message in messages %}
+        <div class="ec-msg ec-msg-{% if 'success' in message.tags %}success{% elif 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}">
+          {{ message }}
         </div>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <!-- Cloche notifications -->
-          <div class="notif-bell-wrap" id="notifBellWrap">
-            <button class="notif-bell-btn" id="notifBellBtn" title="Notifications">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-              </svg>
-              <span class="notif-badge" id="notifBadge">0</span>
-            </button>
-            <div class="notif-dropdown" id="notifDropdown">
-              <div class="notif-dropdown-header">
-                <span>Notifications</span>
-                <button id="notifClearAll">Tout effacer</button>
-              </div>
-              <div class="notif-dropdown-list" id="notifList">
-                <div class="notif-empty">Aucune notification</div>
-              </div>
-            </div>
-          </div>
-          {% block page_actions %}{% endblock %}
-        </div>
-      </div>
+        {% endfor %}
+      {% endif %}
 
-      <div class="ec-content">
+      {% block content %}{% endblock %}
 
-        {% if messages %}
-          {% for message in messages %}
-          <div class="ec-msg ec-msg-{% if 'success' in message.tags %}success{% elif 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}">
-            {{ message }}
-          </div>
-          {% endfor %}
-        {% endif %}
+    </div>
+  </main>
 
-        {% block content %}{% endblock %}
-
-      </div>
-    </main>
-
-  </div>
+</div>
 
 {% block extra_js %}{% endblock %}
 
-<!-- ══ Notifications congés ══ -->
-<div id="sygepe-notif-container"></div>
-<style>
-.notif-bell-wrap { position: relative; }
-.notif-bell-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--ec-text-muted, #6b7280); padding: 8px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.2s, color 0.2s; position: relative;
-}
-.notif-bell-btn:hover { background: rgba(0,0,0,0.05); color: var(--ec-green, #2e7d32); }
-.notif-badge {
-  position: absolute; top: 2px; right: 2px;
-  background: #C0291F; color: #fff;
-  font-size: 0.6rem; font-weight: 700;
-  min-width: 16px; height: 16px; border-radius: 8px;
-  display: none; align-items: center; justify-content: center;
-  padding: 0 3px; border: 2px solid white;
-}
-.notif-dropdown {
-  display: none; position: absolute; top: calc(100% + 10px); right: 0;
-  width: 340px; background: white;
-  border-radius: 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.16);
-  z-index: 9000; overflow: hidden;
-}
-.notif-dropdown.open { display: block; animation: dropIn 0.2s ease; }
-@keyframes dropIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-.notif-dropdown-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; border-bottom: 1px solid #f0ece6;
-  font-weight: 700; font-size: 0.88rem;
-}
-.notif-dropdown-header button {
-  background: none; border: none; color: #888;
-  font-size: 0.78rem; cursor: pointer; padding: 4px 8px; border-radius: 6px;
-}
-.notif-dropdown-header button:hover { background: #f5f0ea; }
-.notif-dropdown-list { max-height: 340px; overflow-y: auto; }
-.notif-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 12px 16px; border-bottom: 1px solid #f5f0ea; transition: background 0.15s;
-}
-.notif-item:hover { background: #faf7f3; }
-.notif-item-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
-.notif-item-body { flex: 1; min-width: 0; }
-.notif-item-titre { font-weight: 700; font-size: 0.82rem; margin-bottom: 2px; }
-.notif-item-msg   { font-size: 0.78rem; color: #888; line-height: 1.4; }
-.notif-item-del {
-  background: none; border: none; color: #ccc;
-  font-size: 1rem; cursor: pointer; padding: 0 4px; line-height: 1; transition: color 0.15s;
-}
-.notif-item-del:hover { color: #C0291F; }
-.notif-empty { padding: 24px; text-align: center; color: #888; font-size: 0.85rem; }
-#sygepe-notif-container {
-  position: fixed; bottom: 24px; right: 24px;
-  z-index: 9999; display: flex; flex-direction: column-reverse; gap: 12px; max-width: 380px;
-}
-.sygepe-toast {
-  display: flex; align-items: flex-start; gap: 14px;
-  padding: 16px 18px; border-radius: 14px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-  animation: toastIn 0.4s cubic-bezier(.34,1.56,.64,1) both;
-  position: relative; color: #fff;
-}
-.sygepe-toast.warning { background: linear-gradient(135deg, #9B6100, #C8750A); }
-.sygepe-toast.danger  { background: linear-gradient(135deg, #b91c1c, #C0291F); }
-.sygepe-toast-icon { font-size: 1.6rem; flex-shrink: 0; }
-.sygepe-toast-body { flex: 1; }
-.sygepe-toast-titre { font-weight: 700; font-size: 0.88rem; margin-bottom: 3px; }
-.sygepe-toast-msg   { font-size: 0.8rem; opacity: 0.92; line-height: 1.4; }
-.sygepe-toast-close {
-  position: absolute; top: 8px; right: 10px;
-  background: none; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; opacity: 0.75;
-}
-@keyframes toastIn {
-  from { opacity: 0; transform: translateX(60px) scale(0.9); }
-  to   { opacity: 1; transform: translateX(0) scale(1); }
-}
-</style>
 <script>
 (function() {
-  const STORE_KEY     = 'sygepe_notifs';
-  const DISMISSED_KEY = 'sygepe_dismissed';
-  const SHOWN_KEY     = 'sygepe_notif_shown_' + new Date().toDateString();
+  const hamburger = document.getElementById('ecHamburger');
+  const sidebar   = document.querySelector('.ec-sidebar');
+  const overlay   = document.getElementById('ecOverlay');
 
-  function load()           { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; } }
-  function save(list)       { localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
-  function loadDismissed()  { try { return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]')); } catch { return new Set(); } }
-  function saveDismissed(s) { localStorage.setItem(DISMISSED_KEY, JSON.stringify([...s])); }
-
-  function updateBadge(n) {
-    const b = document.getElementById('notifBadge');
-    if (n > 0) { b.textContent = n > 9 ? '9+' : n; b.style.display = 'flex'; }
-    else        { b.style.display = 'none'; }
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
   }
 
-  function renderList(list) {
-    const el = document.getElementById('notifList');
-    if (!list.length) { el.innerHTML = '<div class="notif-empty">Aucune notification</div>'; return; }
-    el.innerHTML = list.map((n, i) => `
-      <div class="notif-item">
-        <div class="notif-item-icon">${n.urgence === 'danger' ? '🔴' : '🟡'}</div>
-        <div class="notif-item-body">
-          <div class="notif-item-titre">${n.titre}</div>
-          <div class="notif-item-msg">${n.message}</div>
-        </div>
-        <button class="notif-item-del" onclick="window._sygepeDelNotif(${i})">×</button>
-      </div>`).join('');
-  }
-
-  window._sygepeDelNotif = function(i) {
-    const list = load();
-    const dismissed = loadDismissed();
-    dismissed.add(list[i].message);
-    saveDismissed(dismissed);
-    list.splice(i, 1);
-    save(list);
-    updateBadge(list.length);
-    renderList(list);
-  };
-
-  function showToast(n, delay) {
-    setTimeout(() => {
-      const c = document.getElementById('sygepe-notif-container');
-      const t = document.createElement('div');
-      t.className = `sygepe-toast ${n.urgence}`;
-      t.innerHTML = `
-        <div class="sygepe-toast-icon">${n.urgence === 'danger' ? '🔴' : '🟡'}</div>
-        <div class="sygepe-toast-body">
-          <div class="sygepe-toast-titre">${n.titre}</div>
-          <div class="sygepe-toast-msg">${n.message}</div>
-        </div>
-        <button class="sygepe-toast-close" onclick="this.closest('.sygepe-toast').remove()">×</button>`;
-      c.appendChild(t); setTimeout(() => t.remove(), 12000);
-    }, delay);
-  }
-
-  function playSound(urgent) {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      function beep(f, s, d) {
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination); o.frequency.value = f; o.type = 'sine';
-        g.gain.setValueAtTime(0, ctx.currentTime + s);
-        g.gain.linearRampToValueAtTime(0.35, ctx.currentTime + s + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + s + d);
-        o.start(ctx.currentTime + s); o.stop(ctx.currentTime + s + d + 0.05);
-      }
-      urgent ? (beep(880,0,.3), beep(880,.4,.3), beep(1100,.8,.5))
-             : (beep(660,0,.3), beep(880,.4,.3));
-    } catch(e) {}
-  }
-
-  const stored = load();
-  updateBadge(stored.length); renderList(stored);
-
-  fetch("{% url 'api_notifications_conges' %}")
-    .then(r => r.json())
-    .then(data => {
-      const dismissed  = loadDismissed();
-      const incoming   = (data.notifications || []).filter(n => !dismissed.has(n.message));
-      const storedMsgs = new Set(stored.map(n => n.message));
-      const newOnes    = incoming.filter(n => !storedMsgs.has(n.message));
-      save(incoming); updateBadge(incoming.length); renderList(incoming);
-      if (newOnes.length && !sessionStorage.getItem(SHOWN_KEY)) {
-        sessionStorage.setItem(SHOWN_KEY, '1');
-        newOnes.forEach((n, i) => showToast(n, i * 600));
-        playSound(newOnes.some(n => n.urgence === 'danger'));
-      }
-    });
-
-  document.getElementById('notifBellBtn').addEventListener('click', e => {
+  hamburger.addEventListener('click', function(e) {
     e.stopPropagation();
-    document.getElementById('notifDropdown').classList.toggle('open');
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
   });
-  document.addEventListener('click', () => document.getElementById('notifDropdown').classList.remove('open'));
-  document.getElementById('notifDropdown').addEventListener('click', e => e.stopPropagation());
-  document.getElementById('notifClearAll').addEventListener('click', () => {
-    const list = load();
-    const dismissed = loadDismissed();
-    list.forEach(n => dismissed.add(n.message));
-    saveDismissed(dismissed);
-    save([]); updateBadge(0); renderList([]);
+  overlay.addEventListener('click', closeSidebar);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeSidebar();
+  });
+
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) closeSidebar();
   });
 })();
 </script>
-</body>
-</html>
+
+{% endblock %}

@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
 
       {% if form.non_field_errors %}
@@ -57,7 +57,7 @@
         <!-- Date début -->
         <div class="ec-form-group">
           <label class="ec-form-label">{{ form.date_debut.label }}</label>
-          <input type="date" name="{{ form.date_debut.html_name }}"
+          <input type="date" name="{{ form.date_debut.html_name }}" id="ec_date_debut"
                  value="{{ form.date_debut.value|default:'' }}"
                  class="ec-form-control" required>
           {% if form.date_debut.errors %}<div class="ec-form-error">{{ form.date_debut.errors|join:", " }}</div>{% endif %}
@@ -66,10 +66,13 @@
         <!-- Date fin -->
         <div class="ec-form-group">
           <label class="ec-form-label">{{ form.date_fin.label }}</label>
-          <input type="date" name="{{ form.date_fin.html_name }}"
+          <input type="date" name="{{ form.date_fin.html_name }}" id="ec_date_fin"
                  value="{{ form.date_fin.value|default:'' }}"
                  class="ec-form-control" required>
           {% if form.date_fin.errors %}<div class="ec-form-error">{{ form.date_fin.errors|join:", " }}</div>{% endif %}
+          <small id="info-maternite" style="display:none; color:#5D4037; margin-top:4px; font-size:0.82rem;">
+            Congé maternité : 98 jours — date de retour calculée automatiquement.
+          </small>
         </div>
 
         <!-- Motif (pleine largeur) -->
@@ -80,14 +83,57 @@
           {% if form.motif.errors %}<div class="ec-form-error">{{ form.motif.errors|join:", " }}</div>{% endif %}
         </div>
 
+        <!-- Pièce justificative (congé maladie uniquement) -->
+        <div class="ec-form-group full" id="bloc-justificatif" style="display:none;">
+          <label class="ec-form-label">Pièce justificative (certificat médical) *</label>
+          <input type="file" name="{{ form.piece_justificative.html_name }}" class="ec-form-control" accept=".pdf,.jpg,.jpeg,.png">
+          {% if form.piece_justificative.errors %}<div class="ec-form-error">{{ form.piece_justificative.errors|join:", " }}</div>{% endif %}
+        </div>
+
       </div>
+
+      <script>
+        (function(){
+          var sel       = document.querySelector('[name="{{ form.type_conge.html_name }}"]');
+          var bloc      = document.getElementById('bloc-justificatif');
+          var infoMat   = document.getElementById('info-maternite');
+          var dateDebut = document.getElementById('ec_date_debut');
+          var dateFin   = document.getElementById('ec_date_fin');
+
+          function toggleJustificatif(){
+            bloc.style.display = sel.value === 'maladie' ? '' : 'none';
+          }
+
+          function calcMaternite(){
+            if (sel.value === 'maternite') {
+              infoMat.style.display = '';
+              dateFin.readOnly = true;
+              dateFin.style.background = '#f5f5f5';
+              if (dateDebut.value) {
+                var d = new Date(dateDebut.value);
+                d.setDate(d.getDate() + 97); // 98 jours inclus
+                dateFin.value = d.toISOString().slice(0, 10);
+              }
+            } else {
+              infoMat.style.display = 'none';
+              dateFin.readOnly = false;
+              dateFin.style.background = '';
+            }
+          }
+
+          sel.addEventListener('change', function(){ toggleJustificatif(); calcMaternite(); });
+          dateDebut.addEventListener('change', calcMaternite);
+          toggleJustificatif();
+          calcMaternite();
+        })();
+      </script>
 
       <div class="ec-form-actions">
         <button type="submit" class="ec-btn-primary">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           Soumettre ma demande
         </button>
-        <a href="{% url 'liste_conges' %}" class="ec-btn-outline">Annuler</a>
+        <a href="{% url 'sygepe:liste_conges' %}" class="ec-btn-outline">Annuler</a>
       </div>
     </form>
   </div>

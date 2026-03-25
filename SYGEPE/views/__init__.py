@@ -11,12 +11,12 @@ from .employes import (
     modifier_employe, supprimer_employe,
 )
 from .presences import liste_presences, marquer_presence
-from .conges import demander_conge, liste_conges, valider_conge
+from .conges import demander_conge, liste_conges, mes_conges_perso, valider_conge
 from .permissions import (
-    demander_permission, liste_permissions, valider_permission,
+    demander_permission, liste_permissions, mes_permissions_perso, valider_permission,
 )
 from .profil import (
-    changer_mot_de_passe, modifier_profil_employe, profil,
+    changer_mot_de_passe, modifier_compte_staff, modifier_profil_employe, profil,
     telecharger_profil, telecharger_profil_employe,
 )
 from .rapports import (
@@ -40,11 +40,11 @@ __all__ = [
     # presences
     'liste_presences', 'marquer_presence',
     # conges
-    'liste_conges', 'demander_conge', 'valider_conge',
+    'liste_conges', 'demander_conge', 'valider_conge', 'mes_conges_perso',
     # permissions
-    'liste_permissions', 'demander_permission', 'valider_permission',
+    'liste_permissions', 'demander_permission', 'valider_permission', 'mes_permissions_perso',
     # profil
-    'profil', 'modifier_profil_employe', 'changer_mot_de_passe',
+    'profil', 'modifier_profil_employe', 'modifier_compte_staff', 'changer_mot_de_passe',
     'telecharger_profil', 'telecharger_profil_employe',
     # rapports
     'rapports', 'rapport_presences', 'rapport_conges',

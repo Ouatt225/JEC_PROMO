@@ -205,6 +205,23 @@ if not DEBUG:
     STATICFILES_STORAGE = 'projetjecpromo.storage.MinifiedManifestStaticFilesStorage'
 
 
+# ── E-mail ────────────────────────────────────────────────────────────────────
+# Développement (DEBUG=True)  → console (affiche l'e-mail dans le terminal)
+# Production   (DEBUG=False)  → SMTP (configurer EMAIL_HOST_USER/PASSWORD dans .env)
+
+EMAIL_BACKEND = (
+    'django.core.mail.backends.console.EmailBackend'
+    if DEBUG else
+    'django.core.mail.backends.smtp.EmailBackend'
+)
+EMAIL_HOST          = config('EMAIL_HOST',          default='smtp.gmail.com')
+EMAIL_PORT          = config('EMAIL_PORT',          default=587, cast=int)
+EMAIL_USE_TLS       = config('EMAIL_USE_TLS',       default=True, cast=bool)
+EMAIL_HOST_USER     = config('EMAIL_HOST_USER',     default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL  = config('DEFAULT_FROM_EMAIL',  default='SYGEPE <noreply@sygepe.ci>')
+
+
 # ── Règles métier RH ─────────────────────────────────────────────────────────
 
 # Nombre maximum de tentatives de connexion par IP par minute

@@ -58,7 +58,7 @@
         {% endfor %}
       {% endif %}
 
-      <form method="post" action="{% url 'login' %}">
+      <form method="post" action="{% url 'sygepe:login' %}">
         {% csrf_token %}
         {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
@@ -96,12 +96,7 @@
           Se connecter &rarr;
         </button>
 
-        <div style="text-align:center; margin-top:16px;">
-          <a href="{% url 'changer_mot_de_passe' %}"
-             style="color:var(--primary);font-size:0.83rem;text-decoration:none;font-weight:600;">
-            🔑 Changer mon mot de passe
-          </a>
-        </div>
+
       </form>
 
       <p style="text-align:center; margin-top:28px; color:var(--text-light); font-size:0.75rem;">

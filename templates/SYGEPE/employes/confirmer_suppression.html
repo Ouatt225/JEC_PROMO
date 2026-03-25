@@ -16,7 +16,7 @@
     {% csrf_token %}
     <div class="form-actions" style="justify-content: center;">
       <button type="submit" class="btn btn-danger">🗑️ Oui, supprimer</button>
-      <a href="{% url 'detail_employe' employe.pk %}" class="btn btn-outline">Annuler</a>
+      <a href="{% url 'sygepe:detail_employe' employe.pk %}" class="btn btn-outline">Annuler</a>
     </div>
   </form>
 </div>

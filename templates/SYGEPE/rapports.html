@@ -119,7 +119,7 @@
     <div class="rapport-card-icon">📅</div>
     <h3>Rapport de Présence</h3>
     <p>Statistiques mensuelles des présences par employé</p>
-    <a href="{% url 'rapport_presences' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-presences">
+    <a href="{% url 'sygepe:rapport_presences' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-presences">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       TÉLÉCHARGER
     </a>
@@ -130,7 +130,7 @@
     <div class="rapport-card-icon">🏖️</div>
     <h3>Rapport des Congés</h3>
     <p>Analyse des demandes de congés du mois</p>
-    <a href="{% url 'rapport_conges' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-conges">
+    <a href="{% url 'sygepe:rapport_conges' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-conges">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       TÉLÉCHARGER
     </a>
@@ -141,7 +141,7 @@
     <div class="rapport-card-icon">🔖</div>
     <h3>Rapport des Permissions</h3>
     <p>Analyse des demandes de permission du mois</p>
-    <a href="{% url 'rapport_permissions' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-permissions">
+    <a href="{% url 'sygepe:rapport_permissions' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-permissions">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       TÉLÉCHARGER
     </a>
@@ -152,7 +152,7 @@
     <div class="rapport-card-icon">📊</div>
     <h3>Rapport RH Complet</h3>
     <p>Synthèse mensuelle complète : présences, congés, permissions</p>
-    <a href="{% url 'rapport_rh_complet' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-rh">
+    <a href="{% url 'sygepe:rapport_rh_complet' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-rh">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       TÉLÉCHARGER
     </a>
@@ -163,7 +163,7 @@
     <div class="rapport-card-icon">📗</div>
     <h3>Export Excel — Présences</h3>
     <p>Présences du mois sélectionné au format .xlsx</p>
-    <a href="{% url 'export_excel_presences' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-pres"
+    <a href="{% url 'sygepe:export_excel_presences' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-pres"
        style="background:#217346;">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       EXCEL
@@ -175,7 +175,7 @@
     <div class="rapport-card-icon">📗</div>
     <h3>Export Excel — Congés</h3>
     <p>Tous les congés de l'année sélectionnée au format .xlsx</p>
-    <a href="{% url 'export_excel_conges' %}?annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-cong"
+    <a href="{% url 'sygepe:export_excel_conges' %}?annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-cong"
        style="background:#217346;">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       EXCEL
@@ -187,7 +187,7 @@
     <div class="rapport-card-icon">📗</div>
     <h3>Export Excel — Permissions</h3>
     <p>Toutes les permissions de l'année sélectionnée au format .xlsx</p>
-    <a href="{% url 'export_excel_permissions' %}?annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-perm"
+    <a href="{% url 'sygepe:export_excel_permissions' %}?annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-perm"
        style="background:#217346;">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       EXCEL
@@ -200,13 +200,13 @@
 {% block extra_js %}
 <script>
 const URLS = {
-  presences:    "{% url 'rapport_presences' %}",
-  conges:       "{% url 'rapport_conges' %}",
-  permissions:  "{% url 'rapport_permissions' %}",
-  rh:           "{% url 'rapport_rh_complet' %}",
-  xlsxPres:     "{% url 'export_excel_presences' %}",
-  xlsxCong:     "{% url 'export_excel_conges' %}",
-  xlsxPerm:     "{% url 'export_excel_permissions' %}",
+  presences:    "{% url 'sygepe:rapport_presences' %}",
+  conges:       "{% url 'sygepe:rapport_conges' %}",
+  permissions:  "{% url 'sygepe:rapport_permissions' %}",
+  rh:           "{% url 'sygepe:rapport_rh_complet' %}",
+  xlsxPres:     "{% url 'sygepe:export_excel_presences' %}",
+  xlsxCong:     "{% url 'sygepe:export_excel_conges' %}",
+  xlsxPerm:     "{% url 'sygepe:export_excel_permissions' %}",
 };
 
 function majLiens() {

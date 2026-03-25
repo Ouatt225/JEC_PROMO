@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'sygepe'
+
 urlpatterns = [
     # Authentification
     path('login/', views.login_view, name='login'),
@@ -28,15 +30,18 @@ urlpatterns = [
     path('conges/', views.liste_conges, name='liste_conges'),
     path('conges/demander/', views.demander_conge, name='demander_conge'),
     path('conges/<int:pk>/valider/', views.valider_conge, name='valider_conge'),
+    path('mes-conges/', views.mes_conges_perso, name='mes_conges_perso'),
 
     # Permissions
     path('permissions/', views.liste_permissions, name='liste_permissions'),
     path('permissions/demander/', views.demander_permission, name='demander_permission'),
     path('permissions/<int:pk>/valider/', views.valider_permission, name='valider_permission'),
+    path('mes-permissions/', views.mes_permissions_perso, name='mes_permissions_perso'),
 
     # Profil
     path('profil/', views.profil, name='profil'),
     path('profil/modifier/', views.modifier_profil_employe, name='modifier_profil_employe'),
+    path('profil/modifier-compte/', views.modifier_compte_staff, name='modifier_compte_staff'),
     path('profil/mot-de-passe/', views.changer_mot_de_passe, name='changer_mot_de_passe'),
     path('profil/telecharger/', views.telecharger_profil, name='telecharger_profil'),
 
@@ -62,10 +67,4 @@ urlpatterns = [
     # Historique RH
     path('historique/', views.historique_actions, name='historique_actions'),
 
-    # Boutiques
-    path('boutiques/', views.liste_boutiques, name='liste_boutiques'),
-    path('boutiques/ajouter/', views.ajouter_boutique, name='ajouter_boutique'),
-    path('boutiques/<int:pk>/', views.detail_boutique, name='detail_boutique'),
-    path('boutiques/<int:pk>/modifier/', views.modifier_boutique, name='modifier_boutique'),
-    path('boutiques/<int:pk>/supprimer/', views.supprimer_boutique, name='supprimer_boutique'),
 ]

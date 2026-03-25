@@ -10,7 +10,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 
-from ..forms import EmployeProfilForm
+from ..forms import EmployeProfilForm, UserCompteForm
 from ..models import Employe
 from ..services.pdf import generer_pdf_profil
 from .decorators import get_employe_or_none, is_rh, rh_requis
@@ -32,7 +32,12 @@ def profil(request):
         return redirect('sygepe:login')
 
     employe = get_employe_or_none(request.user)
-    ctx = {'employe': employe}
+    groupes = list(request.user.groups.values_list('name', flat=True))
+    ctx = {
+        'employe': employe,
+        'groupes': groupes,
+        'groupe_principal': groupes[0] if groupes else ('Administrateur' if request.user.is_superuser else '—'),
+    }
     if employe:
         annee              = date.today().year
         jours_pris         = employe.jours_conge_pris(annee)
@@ -41,19 +46,21 @@ def profil(request):
         ctx['quota_total'] = settings.QUOTA_CONGES_ANNUELS
         ctx['annee']       = annee
 
-    if not is_rh(request.user):
+    # Tout utilisateur avec une fiche Employe → espace employé (profil unifié)
+    if employe:
         return render(request, 'SYGEPE/espace_employe/profil.html', ctx)
+    # Staff sans fiche Employe (comptes RH/DAF purs) → page profil admin
     return render(request, 'SYGEPE/profil.html', ctx)
 
 
 @login_required
 def modifier_profil_employe(request):
-    """Permet à un employé de modifier ses informations personnelles."""
+    """Permet à un employé (ou staff avec fiche Employe) de modifier ses infos personnelles."""
     try:
         employe = request.user.employe
     except Employe.DoesNotExist:
-        messages.error(request, "Aucun profil employé associé à votre compte.")
-        return redirect('sygepe:profil')
+        # Staff sans Employe → rediriger vers la modification de compte
+        return redirect('sygepe:modifier_compte_staff')
 
     if request.method == 'POST':
         form = EmployeProfilForm(request.POST, request.FILES, instance=employe)
@@ -66,6 +73,23 @@ def modifier_profil_employe(request):
 
     return render(request, 'SYGEPE/espace_employe/modifier_profil.html',
                   {'form': form, 'employe': employe})
+
+
+@login_required
+def modifier_compte_staff(request):
+    """Modification du compte pour le staff (RH/DAF/Admin) sans fiche Employe liée.
+    Permet de modifier nom, prénom et e-mail du compte Django.
+    """
+    if request.method == 'POST':
+        form = UserCompteForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Vos informations ont été mises à jour.")
+            return redirect('sygepe:profil')
+    else:
+        form = UserCompteForm(instance=request.user)
+
+    return render(request, 'SYGEPE/modifier_compte_staff.html', {'form': form})
 
 
 @login_required

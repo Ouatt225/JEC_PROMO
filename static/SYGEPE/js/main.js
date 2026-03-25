@@ -36,12 +36,16 @@
   };
 
   /* ────────────────────────────────────────────────
-     01. SIDEBAR
+     01. SIDEBAR — desktop collapse + mobile slide
   ──────────────────────────────────────────────── */
-  const sidebar      = document.getElementById('sidebar');
-  const mainWrapper  = document.getElementById('mainWrapper');
-  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar        = document.getElementById('sidebar');
+  const mainWrapper    = document.getElementById('mainWrapper');
+  const sidebarToggle  = document.getElementById('sidebarToggle');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
 
+  function isMobile() { return window.innerWidth <= 768; }
+
+  /* ── Desktop : collapse icônes-seules ── */
   function setSidebar(collapsed) {
     sidebar.classList.toggle('collapsed', collapsed);
     mainWrapper && mainWrapper.classList.toggle('expanded', collapsed);
@@ -49,16 +53,49 @@
     updateCollapsedTooltips();
   }
 
-  if (sidebarToggle && sidebar) {
-    sidebarToggle.addEventListener('click', () => {
-      setSidebar(!sidebar.classList.contains('collapsed'));
-    });
-    /* Restaurer l'état persisté */
-    const savedState = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (savedState) setSidebar(true);
+  /* ── Mobile : slide depuis la gauche ── */
+  function openMobileSidebar() {
+    sidebar.classList.add('mobile-open');
+    sidebarOverlay && sidebarOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden'; // empêcher le scroll arrière-plan
   }
 
-  /* Tooltips sur les items quand la sidebar est réduite */
+  function closeMobileSidebar() {
+    sidebar.classList.remove('mobile-open');
+    sidebarOverlay && sidebarOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (sidebarToggle && sidebar) {
+    sidebarToggle.addEventListener('click', () => {
+      if (isMobile()) {
+        sidebar.classList.contains('mobile-open') ? closeMobileSidebar() : openMobileSidebar();
+      } else {
+        setSidebar(!sidebar.classList.contains('collapsed'));
+      }
+    });
+
+    /* Restaurer l'état persisté (desktop uniquement) */
+    if (!isMobile()) {
+      const savedState = localStorage.getItem('sidebarCollapsed') === 'true';
+      if (savedState) setSidebar(true);
+    }
+  }
+
+  /* Overlay : clic → ferme la sidebar mobile */
+  sidebarOverlay && sidebarOverlay.addEventListener('click', closeMobileSidebar);
+
+  /* Resize : retour desktop → nettoyer l'état mobile */
+  window.addEventListener('resize', () => {
+    if (!isMobile()) closeMobileSidebar();
+  }, { passive: true });
+
+  /* Échap → ferme la sidebar mobile */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && isMobile()) closeMobileSidebar();
+  });
+
+  /* Tooltips sur les items quand la sidebar est réduite (desktop) */
   function updateCollapsedTooltips() {
     if (!sidebar) return;
     const collapsed = sidebar.classList.contains('collapsed');
@@ -73,15 +110,6 @@
       }
     });
   }
-
-  /* Fermer la sidebar sur mobile en cliquant en dehors */
-  document.addEventListener('click', e => {
-    if (!sidebar) return;
-    if (window.innerWidth <= 768) return; // géré par CSS
-    if (!sidebar.contains(e.target) && !sidebarToggle?.contains(e.target)) {
-      // pas de fermeture auto sur desktop
-    }
-  });
 
   /* ────────────────────────────────────────────────
      02. TOPBAR — ombre dynamique au scroll

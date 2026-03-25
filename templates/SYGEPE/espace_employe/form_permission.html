@@ -45,14 +45,43 @@
 
       </div>
 
+      <div id="perm-warning" style="display:none; color:#c0392b; background:#fff0f0; border:1px solid #c0392b; border-radius:6px; padding:10px 14px; margin-bottom:12px;">
+        ⚠️ Une permission ne peut pas dépasser <strong>3 jours</strong>. Veuillez corriger les dates.
+      </div>
       <div class="ec-form-actions">
-        <button type="submit" class="ec-btn-primary">
+        <button type="submit" id="perm-submit" class="ec-btn-primary">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           Soumettre ma demande
         </button>
-        <a href="{% url 'liste_permissions' %}" class="ec-btn-outline">Annuler</a>
+        <a href="{% url 'sygepe:liste_permissions' %}" class="ec-btn-outline">Annuler</a>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const debutInput = document.querySelector('input[name="date_debut"]');
+  const finInput   = document.querySelector('input[name="date_fin"]');
+  const warn       = document.getElementById('perm-warning');
+  const submit     = document.getElementById('perm-submit');
+
+  function verifier() {
+    if (!debutInput.value || !finInput.value) { warn.style.display = 'none'; submit.disabled = false; return; }
+    const jours = (new Date(finInput.value) - new Date(debutInput.value)) / 86400000 + 1;
+    if (jours > 3) {
+      warn.style.display = 'block';
+      submit.disabled = true;
+    } else {
+      warn.style.display = 'none';
+      submit.disabled = false;
+    }
+  }
+
+  debutInput.addEventListener('change', verifier);
+  finInput.addEventListener('change', verifier);
+})();
+</script>
 {% endblock %}
