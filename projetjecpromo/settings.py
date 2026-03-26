@@ -4,6 +4,8 @@ Django settings for projetjecpromo project.
 
 from pathlib import Path
 from decouple import config, Csv
+import dj_database_url
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,6 +35,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'SYGEPE.middleware.ContentSecurityPolicyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -69,24 +72,30 @@ WSGI_APPLICATION = 'projetjecpromo.wsgi.application'
 
 REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
 
-if DEBUG:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        }
+#if DEBUG:
+#    CACHES = {
+#        'default': {
+#            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#        }
+#    }
+#else:
+    #CACHES = {
+    #    'default': {
+    #        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+    #        'LOCATION': REDIS_URL,
+    #        'OPTIONS': {
+    #            'socket_connect_timeout': 5,
+    #            'socket_timeout': 5,
+    #        },
+     #       'KEY_PREFIX': 'sygepe',
+     #   }
+    #}
+
+CACHES = {
+            'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': REDIS_URL,
-            'OPTIONS': {
-                'socket_connect_timeout': 5,
-                'socket_timeout': 5,
-            },
-            'KEY_PREFIX': 'sygepe',
-        }
-    }
+}
 
 # Durées de cache du dashboard (en secondes)
 CACHE_TTL_DASHBOARD_STATS  = 300    # 5 min  — compteurs temps réel
@@ -95,25 +104,30 @@ CACHE_TTL_DASHBOARD_ALERTS = 3600   # 1 h    — alertes anniversaires
 
 # ── Base de données ───────────────────────────────────────────────────────────
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='sygepe_db'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
-        'OPTIONS': {
-            'client_encoding': 'UTF8',
-        },
+#DATABASES = {
+ #   'default': {
+ #       'ENGINE': 'django.db.backends.postgresql',
+ #       'NAME': config('DB_NAME', default='sygepe_db'),
+  #      'USER': config('DB_USER', default='postgres'),
+   #     'PASSWORD': config('DB_PASSWORD'),
+    #    'HOST': config('DB_HOST', default='localhost'),
+    #    'PORT': config('DB_PORT', default='5432'),
+    #    'OPTIONS': {
+    #        'client_encoding': 'UTF8',
+   #     },
         # Base de test isolée — configurable via TEST_DB_NAME dans .env ou CI
-        'TEST': {
-            'NAME': config('TEST_DB_NAME', default='test_sygepe_db'),
-        },
-    }
+    #    'TEST': {
+    #        'NAME': config('TEST_DB_NAME', default='test_sygepe_db'),
+     #   },
+    #}
+#}
+
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL')
+    )
 }
-
-
 # ── Validation des mots de passe ─────────────────────────────────────────────
 
 AUTH_PASSWORD_VALIDATORS = [
