@@ -329,6 +329,7 @@ class EmployeProfilForm(FormClassMixin, forms.ModelForm):
             'situation_familiale', 'nombre_enfants',
             'commune', 'ville', 'adresse',
             'num_cnps',
+            'num_cni',
         ]
         widgets = {
             'photo':               forms.FileInput(attrs={'accept': 'image/*'}),
@@ -343,6 +344,7 @@ class EmployeProfilForm(FormClassMixin, forms.ModelForm):
             'ville':               forms.TextInput(attrs={'placeholder': 'Ville de résidence'}),
             'adresse':             forms.Textarea(attrs={'rows': 3, 'placeholder': 'Adresse complète'}),
             'num_cnps':            forms.TextInput(attrs={'placeholder': 'Numéro CNPS'}),
+            'num_cni':             forms.TextInput(attrs={'placeholder': 'Numéro CNI'}),
         }
 
     def clean_photo(self):

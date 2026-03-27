@@ -227,8 +227,8 @@
 
     </div>
 
-    <!-- ── CNPS ───────────────────────────────── -->
-    <div class="ec-form-section-title">CNPS</div>
+    <!-- ── DOCUMENTS OFFICIELS ───────────────── -->
+    <div class="ec-form-section-title">Documents officiels</div>
     <div class="ec-form-grid">
 
       <div class="ec-form-group">
@@ -237,6 +237,14 @@
         </label>
         {{ form.num_cnps }}
         {% if form.num_cnps.errors %}<div class="ec-form-error">{{ form.num_cnps.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="ec-form-group">
+        <label class="ec-form-label" for="{{ form.num_cni.id_for_label }}">
+          {{ form.num_cni.label }}
+        </label>
+        {{ form.num_cni }}
+        {% if form.num_cni.errors %}<div class="ec-form-error">{{ form.num_cni.errors|join:", " }}</div>{% endif %}
       </div>
 
     </div>

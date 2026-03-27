@@ -272,15 +272,10 @@ def generer_pdf_profil(employe):
     # ══════════════════════════════════════════════════════════════
     elements.append(section_header("ETAT AGENT"))
 
-    conges_approuves = employe.conges.filter(statut='approuve')
-    jours_pris = sum((c.date_fin - c.date_debut).days + 1 for c in conges_approuves)
     today = date.today()
-    if employe.date_embauche:
-        mois_anciennete = (today.year - employe.date_embauche.year) * 12 + \
-                          (today.month - employe.date_embauche.month)
-        solde = max(0, round(mois_anciennete * 2.5) - jours_pris)
-    else:
-        solde = 0
+    annee = today.year
+    jours_pris = employe.jours_conge_pris(annee)
+    solde = max(0, settings.QUOTA_CONGES_ANNUELS - jours_pris)
 
     depart_retraite = '—'
     if employe.date_naissance:

@@ -82,6 +82,7 @@ class Employe(models.Model):
     sexe = models.CharField(max_length=1, choices=SEXE_CHOICES, blank=True)
     lieu_naissance = models.CharField(max_length=100, blank=True)
     num_cnps = models.CharField(max_length=30, blank=True, verbose_name="Numéro CNPS")
+    num_cni = models.CharField(max_length=30, blank=True, verbose_name="Numéro CNI")
     commune = models.CharField(max_length=100, blank=True)
     ville = models.CharField(max_length=100, blank=True)
     nombre_enfants = models.PositiveIntegerField(default=0)
