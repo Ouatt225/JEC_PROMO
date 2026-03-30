@@ -11,7 +11,7 @@ from django.db.models.functions import TruncMonth
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 
-from ..models import Conge, Departement, Employe, Permission, Presence
+from ..models import Absence, Conge, Departement, Employe, Permission, Presence
 from .decorators import get_departement_responsable, is_rh, is_responsable
 
 
@@ -50,17 +50,20 @@ def dashboard(request):
         pres_qs = Presence.objects.filter(date=today)
         cong_qs = Conge.objects.filter(statut='en_attente')
         perm_qs = Permission.objects.filter(statut='en_attente')
+        abs_qs  = Absence.objects.filter(statut='en_attente')
 
         if dept:
             emp_qs  = emp_qs.filter(departement=dept)
             pres_qs = pres_qs.filter(employe__departement=dept)
             cong_qs = cong_qs.filter(employe__departement=dept)
             perm_qs = perm_qs.filter(employe__departement=dept)
+            abs_qs  = abs_qs.filter(employe__departement=dept)
 
         total_employes            = emp_qs.count()
         presences_aujourd_hui     = pres_qs.filter(statut='present').count()
         conges_en_attente         = cong_qs.count()
         permissions_en_attente    = perm_qs.count()
+        absences_en_attente       = abs_qs.count()
         taux_presence             = round(presences_aujourd_hui / total_employes * 100) if total_employes else 0
         absents_aujourd_hui       = pres_qs.filter(statut='absent').count()
         en_conge_aujourd_hui      = pres_qs.filter(statut='conge').count()
@@ -70,6 +73,7 @@ def dashboard(request):
             'presences_aujourd_hui': presences_aujourd_hui,
             'conges_en_attente': conges_en_attente,
             'permissions_en_attente': permissions_en_attente,
+            'absences_en_attente': absences_en_attente,
             'taux_presence': taux_presence,
             'absents_aujourd_hui': absents_aujourd_hui,
             'en_conge_aujourd_hui': en_conge_aujourd_hui,
@@ -146,11 +150,14 @@ def dashboard(request):
     # ── Dernières demandes : toujours fraîches (pas de cache) ─────────────────
     derniers_conges       = Conge.objects.select_related('employe').order_by('-date_demande')
     dernieres_permissions = Permission.objects.select_related('employe').order_by('-date_demande')
+    dernieres_absences    = Absence.objects.select_related('employe').order_by('-date_demande')
     if dept:
         derniers_conges       = derniers_conges.filter(employe__departement=dept)
         dernieres_permissions = dernieres_permissions.filter(employe__departement=dept)
+        dernieres_absences    = dernieres_absences.filter(employe__departement=dept)
     derniers_conges       = derniers_conges[:5]
     dernieres_permissions = dernieres_permissions[:5]
+    dernieres_absences    = dernieres_absences[:5]
 
     context = {
         **stats,
@@ -158,6 +165,7 @@ def dashboard(request):
         **charts,
         'derniers_conges': derniers_conges,
         'dernieres_permissions': dernieres_permissions,
+        'dernieres_absences': dernieres_absences,
         'today': today,
         'departement_filtre': dept,
     }

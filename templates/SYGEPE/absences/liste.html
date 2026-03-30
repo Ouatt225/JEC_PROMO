@@ -1,0 +1,75 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Absences{% endblock %}
+{% block page_title %}Absences{% endblock %}
+{% block page_subtitle %}Gestion des demandes d'absence{% endblock %}
+
+{% block content %}
+
+{% url 'sygepe:liste_absences' as reset_url %}
+{% url 'sygepe:demander_absence' as action_url %}
+{% include 'SYGEPE/includes/filter_bar_statut.html' with reset_url=reset_url action_url=action_url action_label="+ Demander une absence" module="absences" %}
+
+<div class="table-card">
+  {% if absences %}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Employé</th>
+          <th>Type</th>
+          <th>Date début</th>
+          <th>Date fin</th>
+          <th>Durée</th>
+          <th>Motif</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in absences %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="emp-avatar">{{ a.employe.prenom|first }}{{ a.employe.nom|first }}</div>
+              <strong>{{ a.employe.get_full_name }}</strong>
+            </div>
+          </td>
+          <td><span style="font-size:0.83rem;font-weight:600;">{{ a.get_type_absence_display }}</span></td>
+          <td>{{ a.date_debut|date:"d/m/Y" }}</td>
+          <td>{{ a.date_fin|date:"d/m/Y" }}</td>
+          <td>{{ a.nb_jours }} j</td>
+          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.motif }}</td>
+          <td><span class="badge-status badge-{{ a.statut }}">{{ a.get_statut_display }}</span></td>
+          <td>
+            {% if a.pk in ids_validables %}
+              <div style="display:flex;gap:6px;">
+                <a href="{% url 'sygepe:valider_absence' a.pk %}"
+                   style="display:flex;align-items:center;gap:5px;padding:6px 12px;
+                          border-radius:6px;border:1.5px solid #10B981;background:#ECFDF5;
+                          color:#065F46;font-weight:600;font-size:0.78rem;text-decoration:none;">
+                  ✔ Traiter
+                </a>
+              </div>
+            {% elif a.statut == 'en_attente' %}
+              <span style="color:#d97706;font-size:0.8rem;">⏳ En attente DRH</span>
+            {% elif a.statut == 'approuve' %}
+              <span style="color:#065F46;font-size:0.8rem;font-weight:600;">✔ Approuvé</span>
+            {% elif a.statut == 'refuse' %}
+              <span style="color:#991B1B;font-size:0.8rem;font-weight:600;">✘ Refusé</span>
+            {% else %}
+              <span style="color:var(--text-muted);font-size:0.8rem;">Traité</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  {% include 'SYGEPE/includes/empty_state.html' with empty_icon="📋" empty_message="Aucune demande d'absence." empty_action_url=action_url empty_action_label="Faire une demande" %}
+  {% endif %}
+  {% include 'SYGEPE/includes/pagination.html' with page_obj=absences page_range=page_range params=params %}
+</div>
+
+{% endblock %}

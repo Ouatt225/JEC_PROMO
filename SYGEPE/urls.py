@@ -30,7 +30,14 @@ urlpatterns = [
     path('conges/', views.liste_conges, name='liste_conges'),
     path('conges/demander/', views.demander_conge, name='demander_conge'),
     path('conges/<int:pk>/valider/', views.valider_conge, name='valider_conge'),
+    path('conges/<int:pk>/modifier/', views.modifier_conge, name='modifier_conge'),
     path('mes-conges/', views.mes_conges_perso, name='mes_conges_perso'),
+
+    # Absences
+    path('absences/', views.liste_absences, name='liste_absences'),
+    path('absences/demander/', views.demander_absence, name='demander_absence'),
+    path('absences/<int:pk>/valider/', views.valider_absence, name='valider_absence'),
+    path('mes-absences/', views.mes_absences_perso, name='mes_absences_perso'),
 
     # Permissions
     path('permissions/', views.liste_permissions, name='liste_permissions'),

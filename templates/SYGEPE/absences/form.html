@@ -1,0 +1,45 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Demande d'absence{% endblock %}
+{% block page_title %}Demande d'absence{% endblock %}
+{% block page_subtitle %}Mission professionnelle, formation interne ou atelier{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <h2>📋 Nouvelle demande d'absence</h2>
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div style="color:var(--danger);background:#fff0f0;border:1px solid var(--danger);border-radius:6px;padding:10px 14px;margin-bottom:12px;">
+        {{ form.non_field_errors|join:", " }}
+      </div>
+    {% endif %}
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Type d'absence *</label>
+        {{ form.type_absence }}
+        {% if form.type_absence.errors %}<small style="color:var(--danger);">{{ form.type_absence.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group">
+        <label>Date de début *</label>
+        {{ form.date_debut }}
+        {% if form.date_debut.errors %}<small style="color:var(--danger);">{{ form.date_debut.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group">
+        <label>Date de fin *</label>
+        {{ form.date_fin }}
+        {% if form.date_fin.errors %}<small style="color:var(--danger);">{{ form.date_fin.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group full">
+        <label>Motif *</label>
+        {{ form.motif }}
+        {% if form.motif.errors %}<small style="color:var(--danger);">{{ form.motif.errors.0 }}</small>{% endif %}
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">📤 Soumettre la demande</button>
+      <a href="{% url 'sygepe:liste_absences' %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

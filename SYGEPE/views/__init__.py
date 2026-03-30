@@ -4,6 +4,7 @@ Re-exporte toutes les fonctions-vues afin que urls.py puisse continuer
 d'utiliser « from . import views » + « views.ma_vue » sans modification.
 """
 
+from .absences import demander_absence, liste_absences, mes_absences_perso, valider_absence
 from .auth import csrf_failure, login_view, logout_view, root_view
 from .dashboard import dashboard
 from .employes import (
@@ -11,7 +12,7 @@ from .employes import (
     modifier_employe, supprimer_employe,
 )
 from .presences import liste_presences, marquer_presence
-from .conges import demander_conge, liste_conges, mes_conges_perso, valider_conge
+from .conges import demander_conge, liste_conges, mes_conges_perso, modifier_conge, valider_conge
 from .permissions import (
     demander_permission, liste_permissions, mes_permissions_perso, valider_permission,
 )
@@ -30,6 +31,8 @@ from .api import api_calendrier_events, api_notifications_conges, calendrier_con
 from .historique import historique_actions
 
 __all__ = [
+    # absences
+    'liste_absences', 'demander_absence', 'valider_absence', 'mes_absences_perso',
     # auth
     'csrf_failure', 'root_view', 'login_view', 'logout_view',
     # dashboard
@@ -40,7 +43,7 @@ __all__ = [
     # presences
     'liste_presences', 'marquer_presence',
     # conges
-    'liste_conges', 'demander_conge', 'valider_conge', 'mes_conges_perso',
+    'liste_conges', 'demander_conge', 'valider_conge', 'mes_conges_perso', 'modifier_conge',
     # permissions
     'liste_permissions', 'demander_permission', 'valider_permission', 'mes_permissions_perso',
     # profil

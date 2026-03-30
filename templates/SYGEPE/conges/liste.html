@@ -74,7 +74,15 @@
             <span style="color:#d97706;font-size:0.8rem;font-weight:600;" title="En attente du rôle compétent">⏳ En attente</span>
             {% else %}
               {% if c.statut == 'approuve' %}
-                <span style="color:#065F46;font-size:0.8rem;font-weight:600;">✔ Approuvé</span>
+                <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+                  <span style="color:#065F46;font-size:0.8rem;font-weight:600;">✔ Approuvé</span>
+                  {% if c.date_debut > today %}
+                    <a href="{% url 'sygepe:modifier_conge' c.pk %}"
+                       style="font-size:0.78rem;color:#D97706;font-weight:600;white-space:nowrap;">
+                      ✎ Modifier
+                    </a>
+                  {% endif %}
+                </div>
               {% elif c.statut == 'refuse' %}
                 <span style="color:#991B1B;font-size:0.8rem;font-weight:600;">✘ Rejeté</span>
               {% else %}

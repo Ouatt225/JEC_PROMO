@@ -2,7 +2,7 @@ import os
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
-from .models import Employe, Departement, Presence, Conge, Permission
+from .models import Absence, Employe, Departement, Presence, Conge, Permission
 
 PHOTO_MAX_SIZE    = 10 * 1024 * 1024  # 10 Mo — Pillow compresse à l'enregistrement (→ ~30 Ko)
 PHOTO_EXTENSIONS  = {'.jpg', '.jpeg', '.png', '.webp'}
@@ -227,6 +227,103 @@ class ValidationCongeForm(FormClassMixin, forms.ModelForm):
         return cleaned_data
 
 
+class ModifierCongeForm(FormClassMixin, forms.Form):
+    """Formulaire de fractionnement d'un congé déjà approuvé.
+    Permet de remplacer un congé par 1 ou 2 nouvelles périodes.
+    La Période 1 est obligatoire ; la Période 2 est facultative.
+    Le total des jours des 2 périodes ne doit pas dépasser le congé original.
+    """
+    widget_css_class = 'form-control'
+
+    date_debut_1 = forms.DateField(
+        label="Début — Période 1",
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    date_fin_1 = forms.DateField(
+        label="Fin — Période 1",
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    date_debut_2 = forms.DateField(
+        label="Début — Période 2",
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=False,
+    )
+    date_fin_2 = forms.DateField(
+        label="Fin — Période 2",
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=False,
+    )
+    motif = forms.CharField(
+        label="Motif de modification",
+        widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Expliquez la raison du changement de dates'}),
+    )
+
+    def __init__(self, *args, conge_original=None, employe=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.conge_original = conge_original
+        self.employe = employe
+
+    def clean(self):
+        cleaned_data = super().clean()
+        dd1 = cleaned_data.get('date_debut_1')
+        df1 = cleaned_data.get('date_fin_1')
+        dd2 = cleaned_data.get('date_debut_2')
+        df2 = cleaned_data.get('date_fin_2')
+
+        if not dd1 or not df1:
+            return cleaned_data
+
+        # Règle 1 : cohérence des dates période 1
+        if df1 < dd1:
+            self.add_error('date_fin_1', "La date de fin doit être après la date de début.")
+            return cleaned_data
+
+        jours1 = (df1 - dd1).days + 1
+        jours2 = 0
+
+        # Règle 2 : si période 2 renseignée, valider aussi
+        if dd2 or df2:
+            if not dd2:
+                self.add_error('date_debut_2', "Veuillez saisir la date de début de la période 2.")
+                return cleaned_data
+            if not df2:
+                self.add_error('date_fin_2', "Veuillez saisir la date de fin de la période 2.")
+                return cleaned_data
+            if df2 < dd2:
+                self.add_error('date_fin_2', "La date de fin doit être après la date de début.")
+                return cleaned_data
+            # Règle 3 : pas de chevauchement entre les 2 périodes
+            if dd2 <= df1 and df2 >= dd1:
+                raise forms.ValidationError("Les deux périodes se chevauchent.")
+            jours2 = (df2 - dd2).days + 1
+
+        # Règle 4 : total ≤ jours du congé original
+        if self.conge_original:
+            total = jours1 + jours2
+            max_jours = self.conge_original.nb_jours
+            if total > max_jours:
+                raise forms.ValidationError(
+                    f"Le total des nouvelles périodes ({total} jour(s)) dépasse "
+                    f"le congé original ({max_jours} jour(s))."
+                )
+
+        # Règle 5 : vérifier chevauchements avec congés existants
+        if self.employe:
+            _valider_chevauchement(
+                Conge, self.employe, dd1, df1,
+                self.conge_original.pk if self.conge_original else None,
+                "un congé existant (période 1)"
+            )
+            if dd2 and df2:
+                _valider_chevauchement(
+                    Conge, self.employe, dd2, df2,
+                    self.conge_original.pk if self.conge_original else None,
+                    "un congé existant (période 2)"
+                )
+
+        return cleaned_data
+
+
 class PermissionForm(FormClassMixin, forms.ModelForm):
 
     def __init__(self, *args, employe=None, **kwargs):
@@ -371,3 +468,65 @@ class UserCompteForm(FormClassMixin, forms.ModelForm):
         }
 
 
+class AbsenceForm(FormClassMixin, forms.ModelForm):
+    """Formulaire de demande d'absence (mission pro, formation interne, atelier).
+    Validation directe par la DRH — pas de circuit responsable.
+    """
+
+    def __init__(self, *args, employe=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.employe = employe
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date_debut = cleaned_data.get('date_debut')
+        date_fin   = cleaned_data.get('date_fin')
+
+        if date_debut and date_fin:
+            if date_fin < date_debut:
+                raise forms.ValidationError(
+                    "La date de fin ne peut pas être antérieure à la date de début."
+                )
+            if self.employe:
+                _valider_chevauchement(
+                    Absence, self.employe, date_debut, date_fin,
+                    self.instance.pk or None, "une absence existante",
+                )
+        return cleaned_data
+
+    class Meta:
+        model  = Absence
+        fields = ['type_absence', 'date_debut', 'date_fin', 'motif']
+        widgets = {
+            'type_absence': forms.Select(),
+            'date_debut':   forms.DateInput(attrs={'type': 'date'}),
+            'date_fin':     forms.DateInput(attrs={'type': 'date'}),
+            'motif':        forms.Textarea(attrs={'rows': 4, 'placeholder': 'Décrivez le contexte et l\'objectif...'}),
+        }
+
+
+class ValidationAbsenceForm(FormClassMixin, forms.ModelForm):
+    """Formulaire de validation d'une absence par la DRH."""
+
+    class Meta:
+        model  = Absence
+        fields = ['statut', 'commentaire_valideur']
+        widgets = {
+            'statut':               forms.HiddenInput(),
+            'commentaire_valideur': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Motif du rejet (obligatoire en cas de refus)',
+            }),
+        }
+
+    def clean_statut(self):
+        statut = self.cleaned_data.get('statut')
+        if statut not in ('approuve', 'refuse'):
+            raise forms.ValidationError("Décision invalide.")
+        return statut
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('statut') == 'refuse' and not cleaned_data.get('commentaire_valideur', '').strip():
+            self.add_error('commentaire_valideur', "Un motif de rejet est obligatoire.")
+        return cleaned_data

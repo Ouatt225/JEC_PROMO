@@ -126,6 +126,14 @@
     {% endif %}
 
     {% if is_rh_user %}
+    <a href="{% url 'sygepe:liste_absences' %}" class="nav-item {% if 'absence' in request.resolver_match.url_name %}active{% endif %}">
+      <span class="nav-icon">📋</span>
+      <span>Absences</span>
+      {% if absences_en_attente_count %}<span class="nav-badge">{{ absences_en_attente_count }}</span>{% endif %}
+    </a>
+    {% endif %}
+
+    {% if is_rh_user %}
     <a href="{% url 'sygepe:calendrier_conges' %}" class="nav-item {% if request.resolver_match.url_name == 'calendrier_conges' %}active{% endif %}">
       <span class="nav-icon">🗓️</span>
       <span>Calendrier</span>

@@ -1480,8 +1480,8 @@ textarea { resize: vertical; min-height: 90px; }
   .topbar-title p  { display: block; }
   .user-info       { display: block; }
 
-  /* KPI : grille auto-fit */
-  .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  /* KPI : grille auto-fit — 5 cartes max sur une ligne */
+  .kpi-grid { grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); }
 
   /* Contenu */
   .page-content { padding: 28px; }

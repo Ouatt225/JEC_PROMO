@@ -43,7 +43,7 @@
             {{ log.date|date:"d/m/Y H:i" }}
           </td>
           <td>
-            <strong>{{ log.utilisateur.get_full_name|default:log.utilisateur.username }}</strong>
+            <strong>{% if log.utilisateur %}{{ log.utilisateur.get_full_name|default:log.utilisateur.username }}{% else %}—{% endif %}</strong>
           </td>
           <td>
             {% with a=log.action %}

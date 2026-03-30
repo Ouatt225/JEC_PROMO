@@ -258,6 +258,10 @@ class Conge(PeriodeMixin, models.Model):
         verbose_name="Pièce justificative"
     )
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    conge_parent = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='fractions', verbose_name='Congé d\'origine (fractionnement)'
+    )
     valideur = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='conges_valides')
     date_validation = models.DateTimeField(null=True, blank=True)
     commentaire_valideur = models.TextField(blank=True)
@@ -284,6 +288,10 @@ class ActionLog(models.Model):
         ('conge_demande',      'Congé demandé'),
         ('conge_approuve',     'Congé approuvé'),
         ('conge_refuse',       'Congé refusé'),
+        ('conge_modifie',      'Congé modifié / fractionné'),
+        ('absence_demandee',   'Absence demandée'),
+        ('absence_approuvee',  'Absence approuvée'),
+        ('absence_refusee',    'Absence refusée'),
         ('permission_demande', 'Permission demandée'),
         ('permission_approuve','Permission approuvée'),
         ('permission_refuse',  'Permission refusée'),
@@ -312,6 +320,43 @@ class ActionLog(models.Model):
         verbose_name        = "Action RH"
         verbose_name_plural = "Historique des actions RH"
         ordering            = ['-date']
+
+
+class Absence(PeriodeMixin, models.Model):
+    """Demande d'absence spéciale : mission professionnelle, formation interne, atelier.
+    Validation directe par la DRH (pas de circuit responsable).
+    """
+    TYPE_CHOICES = [
+        ('mission_pro',       'Mission professionnelle'),
+        ('formation_interne', 'Formation interne'),
+        ('atelier',           'Atelier'),
+    ]
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('approuve',   'Approuvé'),
+        ('refuse',     'Refusé'),
+        ('annule',     'Annulé'),
+    ]
+
+    employe           = models.ForeignKey(Employe, on_delete=models.CASCADE, related_name='absences')
+    type_absence      = models.CharField(max_length=30, choices=TYPE_CHOICES, verbose_name="Type d'absence")
+    date_debut        = models.DateField()
+    date_fin          = models.DateField()
+    motif             = models.TextField()
+    statut            = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    valideur          = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                          related_name='absences_validees')
+    date_validation   = models.DateTimeField(null=True, blank=True)
+    commentaire_valideur = models.TextField(blank=True)
+    date_demande      = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.employe} - {self.get_type_absence_display()} du {self.date_debut} au {self.date_fin}"
+
+    class Meta:
+        verbose_name        = "Absence"
+        verbose_name_plural = "Absences"
+        ordering            = ['-date_demande']
 
 
 class Permission(PeriodeMixin, models.Model):

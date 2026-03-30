@@ -1,0 +1,155 @@
+{% extends 'SYGEPE/base.html' %}
+
+{% block title %}Modifier le congé{% endblock %}
+{% block page_title %}Fractionnement de congé{% endblock %}
+{% block page_subtitle %}Remplacer un congé approuvé par une ou deux nouvelles périodes{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 700px; margin: 0 auto;">
+
+  <!-- En-tête employé -->
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:28px;">
+    <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4F46E5);
+                display:flex;align-items:center;justify-content:center;
+                color:#fff;font-weight:700;font-size:1.2rem;flex-shrink:0;">
+      {{ conge.employe.prenom|first|upper }}{{ conge.employe.nom|first|upper }}
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:1.05rem;">{{ conge.employe.get_full_name }}</div>
+      <div style="font-size:0.85rem;color:#6b7280;">{{ conge.employe.poste }} — {{ conge.employe.departement|default:"—" }}</div>
+    </div>
+  </div>
+
+  <!-- Récapitulatif du congé original -->
+  <div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+    <div style="font-weight:700;font-size:0.85rem;color:#92400E;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">
+      Congé original (sera annulé)
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:0.88rem;">
+      <div><span style="color:#6b7280;">Type :</span> <strong>{{ conge.get_type_conge_display }}</strong></div>
+      <div><span style="color:#6b7280;">Durée :</span> <strong>{{ conge.nb_jours }} jour(s)</strong></div>
+      <div><span style="color:#6b7280;">Début :</span> <strong>{{ conge.date_debut|date:"d/m/Y" }}</strong></div>
+      <div><span style="color:#6b7280;">Fin :</span> <strong>{{ conge.date_fin|date:"d/m/Y" }}</strong></div>
+    </div>
+  </div>
+
+  <!-- Avertissement -->
+  <div style="background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:6px;padding:12px 16px;margin-bottom:24px;font-size:0.87rem;color:#1E40AF;">
+    Les nouvelles demandes seront soumises à revalidation par les RH.
+    Le congé original sera automatiquement annulé.
+  </div>
+
+  <!-- Erreurs globales -->
+  {% if form.non_field_errors %}
+    <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:12px 16px;margin-bottom:18px;color:#991B1B;font-size:0.87rem;">
+      {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Période 1 -->
+    <div style="font-weight:700;font-size:0.82rem;color:#6b7280;text-transform:uppercase;
+                letter-spacing:.6px;border-top:1px solid #e5e7eb;padding-top:18px;margin-bottom:14px;">
+      Période 1 <span style="color:#EF4444;">*</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;">
+      <div>
+        <label class="form-label" for="{{ form.date_debut_1.id_for_label }}">{{ form.date_debut_1.label }}</label>
+        {{ form.date_debut_1 }}
+        {% if form.date_debut_1.errors %}<div class="text-danger" style="font-size:.83rem;margin-top:4px;">{{ form.date_debut_1.errors|join:", " }}</div>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="{{ form.date_fin_1.id_for_label }}">{{ form.date_fin_1.label }}</label>
+        {{ form.date_fin_1 }}
+        {% if form.date_fin_1.errors %}<div class="text-danger" style="font-size:.83rem;margin-top:4px;">{{ form.date_fin_1.errors|join:", " }}</div>{% endif %}
+      </div>
+    </div>
+    <div id="jours1-info" style="font-size:.83rem;color:#059669;font-weight:600;margin-bottom:16px;min-height:1.2em;"></div>
+
+    <!-- Période 2 -->
+    <div style="font-weight:700;font-size:0.82rem;color:#6b7280;text-transform:uppercase;
+                letter-spacing:.6px;border-top:1px solid #e5e7eb;padding-top:18px;margin-bottom:14px;">
+      Période 2 <span style="color:#6b7280;font-weight:400;text-transform:none;">(facultative)</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;">
+      <div>
+        <label class="form-label" for="{{ form.date_debut_2.id_for_label }}">{{ form.date_debut_2.label }}</label>
+        {{ form.date_debut_2 }}
+        {% if form.date_debut_2.errors %}<div class="text-danger" style="font-size:.83rem;margin-top:4px;">{{ form.date_debut_2.errors|join:", " }}</div>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="{{ form.date_fin_2.id_for_label }}">{{ form.date_fin_2.label }}</label>
+        {{ form.date_fin_2 }}
+        {% if form.date_fin_2.errors %}<div class="text-danger" style="font-size:.83rem;margin-top:4px;">{{ form.date_fin_2.errors|join:", " }}</div>{% endif %}
+      </div>
+    </div>
+    <div id="jours2-info" style="font-size:.83rem;color:#059669;font-weight:600;margin-bottom:16px;min-height:1.2em;"></div>
+
+    <!-- Total jours -->
+    <div id="total-info" style="font-size:.87rem;font-weight:600;color:#1D4ED8;margin-bottom:20px;min-height:1.2em;"></div>
+
+    <!-- Motif -->
+    <div style="border-top:1px solid #e5e7eb;padding-top:18px;margin-bottom:20px;">
+      <label class="form-label" for="{{ form.motif.id_for_label }}">{{ form.motif.label }}</label>
+      {{ form.motif }}
+      {% if form.motif.errors %}<div class="text-danger" style="font-size:.83rem;margin-top:4px;">{{ form.motif.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:8px;">
+      <a href="{% url 'sygepe:liste_conges' %}" class="btn btn-outline-secondary">Annuler</a>
+      <button type="submit" class="btn btn-warning" style="font-weight:600;">
+        Confirmer le fractionnement
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+(function () {
+  const maxJours = {{ conge.nb_jours }};
+
+  function diffJours(dd, df) {
+    if (!dd || !df) return 0;
+    const d1 = new Date(dd), d2 = new Date(df);
+    if (d2 < d1) return 0;
+    return Math.round((d2 - d1) / 86400000) + 1;
+  }
+
+  function update() {
+    const dd1 = document.getElementById('{{ form.date_debut_1.id_for_label }}').value;
+    const df1 = document.getElementById('{{ form.date_fin_1.id_for_label }}').value;
+    const dd2 = document.getElementById('{{ form.date_debut_2.id_for_label }}').value;
+    const df2 = document.getElementById('{{ form.date_fin_2.id_for_label }}').value;
+
+    const j1 = diffJours(dd1, df1);
+    const j2 = diffJours(dd2, df2);
+    const total = j1 + j2;
+
+    document.getElementById('jours1-info').textContent = j1 > 0 ? `→ ${j1} jour(s)` : '';
+    document.getElementById('jours2-info').textContent = j2 > 0 ? `→ ${j2} jour(s)` : '';
+
+    if (total > 0) {
+      const restant = maxJours - total;
+      const couleur = restant < 0 ? '#DC2626' : '#1D4ED8';
+      document.getElementById('total-info').style.color = couleur;
+      document.getElementById('total-info').textContent =
+        `Total : ${total} jour(s) sur ${maxJours} disponibles` +
+        (restant < 0 ? ` — dépassement de ${-restant} jour(s) !` : ` (${restant} jour(s) non utilisés)`);
+    } else {
+      document.getElementById('total-info').textContent = '';
+    }
+  }
+
+  ['{{ form.date_debut_1.id_for_label }}', '{{ form.date_fin_1.id_for_label }}',
+   '{{ form.date_debut_2.id_for_label }}', '{{ form.date_fin_2.id_for_label }}']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', update);
+    });
+})();
+</script>
+{% endblock %}
