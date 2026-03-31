@@ -125,7 +125,7 @@
     </a>
     {% endif %}
 
-    {% if is_rh_user %}
+    {% if is_rh_user or is_responsable_user %}
     <a href="{% url 'sygepe:liste_absences' %}" class="nav-item {% if 'absence' in request.resolver_match.url_name %}active{% endif %}">
       <span class="nav-icon">📋</span>
       <span>Absences</span>

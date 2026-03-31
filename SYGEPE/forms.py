@@ -506,24 +506,36 @@ class AbsenceForm(FormClassMixin, forms.ModelForm):
 
 
 class ValidationAbsenceForm(FormClassMixin, forms.ModelForm):
-    """Formulaire de validation d'une absence par la DRH."""
+    """Formulaire de validation d'une absence.
+
+    step=1 → responsable : valide_responsable ou refuse
+    step=2 → DRH         : approuve ou refuse
+    """
+
+    def __init__(self, *args, step=2, **kwargs):
+        super().__init__(*args, **kwargs)
+        if step == 1:
+            self.fields['statut'].widget = forms.Select(choices=[
+                ('valide_responsable', 'Transmettre à la DRH'),
+                ('refuse', 'Refuser'),
+            ])
+        else:
+            self.fields['statut'].widget = forms.Select(choices=[
+                ('approuve', 'Approuver'),
+                ('refuse', 'Refuser'),
+            ])
+        self._apply_widget_classes()
 
     class Meta:
         model  = Absence
         fields = ['statut', 'commentaire_valideur']
         widgets = {
-            'statut':               forms.HiddenInput(),
+            'statut':               forms.Select(),
             'commentaire_valideur': forms.Textarea(attrs={
                 'rows': 3,
                 'placeholder': 'Motif du rejet (obligatoire en cas de refus)',
             }),
         }
-
-    def clean_statut(self):
-        statut = self.cleaned_data.get('statut')
-        if statut not in ('approuve', 'refuse'):
-            raise forms.ValidationError("Décision invalide.")
-        return statut
 
     def clean(self):
         cleaned_data = super().clean()

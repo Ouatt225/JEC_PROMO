@@ -21,11 +21,11 @@ from .profil import (
     telecharger_profil, telecharger_profil_employe,
 )
 from .rapports import (
-    rapport_conges, rapport_permissions, rapport_presences,
+    rapport_absences, rapport_conges, rapport_permissions, rapport_presences,
     rapport_rh_complet, rapports,
 )
 from .exports import (
-    export_excel_conges, export_excel_permissions, export_excel_presences,
+    export_excel_absences, export_excel_conges, export_excel_permissions, export_excel_presences,
 )
 from .api import api_calendrier_events, api_notifications_conges, calendrier_conges
 from .historique import historique_actions
@@ -51,9 +51,10 @@ __all__ = [
     'telecharger_profil', 'telecharger_profil_employe',
     # rapports
     'rapports', 'rapport_presences', 'rapport_conges',
-    'rapport_permissions', 'rapport_rh_complet',
+    'rapport_permissions', 'rapport_absences', 'rapport_rh_complet',
     # exports
     'export_excel_presences', 'export_excel_conges', 'export_excel_permissions',
+    'export_excel_absences',
     # api
     'api_notifications_conges', 'api_calendrier_events', 'calendrier_conges',
     # historique

@@ -289,9 +289,10 @@ class ActionLog(models.Model):
         ('conge_approuve',     'Congé approuvé'),
         ('conge_refuse',       'Congé refusé'),
         ('conge_modifie',      'Congé modifié / fractionné'),
-        ('absence_demandee',   'Absence demandée'),
-        ('absence_approuvee',  'Absence approuvée'),
-        ('absence_refusee',    'Absence refusée'),
+        ('absence_demandee',    'Absence demandée'),
+        ('absence_validee_resp','Absence validée par responsable'),
+        ('absence_approuvee',   'Absence approuvée'),
+        ('absence_refusee',     'Absence refusée'),
         ('permission_demande', 'Permission demandée'),
         ('permission_approuve','Permission approuvée'),
         ('permission_refuse',  'Permission refusée'),
@@ -324,7 +325,7 @@ class ActionLog(models.Model):
 
 class Absence(PeriodeMixin, models.Model):
     """Demande d'absence spéciale : mission professionnelle, formation interne, atelier.
-    Validation directe par la DRH (pas de circuit responsable).
+    Circuit à 2 étapes : responsable de département → DRH (identique aux permissions).
     """
     TYPE_CHOICES = [
         ('mission_pro',       'Mission professionnelle'),
@@ -332,10 +333,11 @@ class Absence(PeriodeMixin, models.Model):
         ('atelier',           'Atelier'),
     ]
     STATUT_CHOICES = [
-        ('en_attente', 'En attente'),
-        ('approuve',   'Approuvé'),
-        ('refuse',     'Refusé'),
-        ('annule',     'Annulé'),
+        ('en_attente',          'En attente'),
+        ('valide_responsable',  'Validé par responsable'),
+        ('approuve',            'Approuvé'),
+        ('refuse',              'Refusé'),
+        ('annule',              'Annulé'),
     ]
 
     employe           = models.ForeignKey(Employe, on_delete=models.CASCADE, related_name='absences')
@@ -344,6 +346,11 @@ class Absence(PeriodeMixin, models.Model):
     date_fin          = models.DateField()
     motif             = models.TextField()
     statut            = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    # Étape 1 : validation par le responsable de département
+    valideur_responsable          = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                                       related_name='absences_validees_resp')
+    date_validation_responsable   = models.DateTimeField(null=True, blank=True)
+    # Étape 2 : validation finale par la DRH
     valideur          = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                           related_name='absences_validees')
     date_validation   = models.DateTimeField(null=True, blank=True)

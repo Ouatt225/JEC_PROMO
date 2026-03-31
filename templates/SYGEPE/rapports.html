@@ -147,6 +147,17 @@
     </a>
   </div>
 
+  <!-- Rapport des Absences spéciales -->
+  <div class="rapport-card">
+    <div class="rapport-card-icon">📋</div>
+    <h3>Rapport des Absences</h3>
+    <p>Missions professionnelles, formations et ateliers du mois</p>
+    <a href="{% url 'sygepe:rapport_absences' %}?mois={{ mois_courant }}&annee={{ annee_courante }}" class="btn-dl" id="link-absences">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      TÉLÉCHARGER
+    </a>
+  </div>
+
   <!-- Rapport RH Complet -->
   <div class="rapport-card">
     <div class="rapport-card-icon">📊</div>
@@ -194,6 +205,18 @@
     </a>
   </div>
 
+  <!-- Export Excel Absences -->
+  <div class="rapport-card" style="border-top-color: #217346;">
+    <div class="rapport-card-icon">📗</div>
+    <h3>Export Excel — Absences</h3>
+    <p>Toutes les absences spéciales de l'année sélectionnée au format .xlsx</p>
+    <a href="{% url 'sygepe:export_excel_absences' %}?annee={{ annee_courante }}" class="btn-dl" id="link-xlsx-abs"
+       style="background:#217346;">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      EXCEL
+    </a>
+  </div>
+
 </div>
 {% endblock %}
 
@@ -203,10 +226,12 @@ const URLS = {
   presences:    "{% url 'sygepe:rapport_presences' %}",
   conges:       "{% url 'sygepe:rapport_conges' %}",
   permissions:  "{% url 'sygepe:rapport_permissions' %}",
+  absences:     "{% url 'sygepe:rapport_absences' %}",
   rh:           "{% url 'sygepe:rapport_rh_complet' %}",
   xlsxPres:     "{% url 'sygepe:export_excel_presences' %}",
   xlsxCong:     "{% url 'sygepe:export_excel_conges' %}",
   xlsxPerm:     "{% url 'sygepe:export_excel_permissions' %}",
+  xlsxAbs:      "{% url 'sygepe:export_excel_absences' %}",
 };
 
 function majLiens() {
@@ -217,10 +242,12 @@ function majLiens() {
   document.getElementById('link-presences').href   = URLS.presences   + params;
   document.getElementById('link-conges').href      = URLS.conges      + params;
   document.getElementById('link-permissions').href = URLS.permissions + params;
+  document.getElementById('link-absences').href    = URLS.absences    + params;
   document.getElementById('link-rh').href          = URLS.rh          + params;
   document.getElementById('link-xlsx-pres').href   = URLS.xlsxPres    + params;
   document.getElementById('link-xlsx-cong').href   = URLS.xlsxCong    + paramsAnnee;
   document.getElementById('link-xlsx-perm').href   = URLS.xlsxPerm    + paramsAnnee;
+  document.getElementById('link-xlsx-abs').href    = URLS.xlsxAbs     + paramsAnnee;
 }
 
 // Mise à jour immédiate dès que la sélection change

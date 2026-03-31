@@ -4,8 +4,133 @@
 {% block page_title %}Demander un congé{% endblock %}
 {% block page_subtitle %}Soumettre une nouvelle demande de congé{% endblock %}
 
+{% block extra_css %}
+/* ── Wrapper ── */
+.rf-wrapper { max-width: 700px; }
+
+/* ── Solde boxes ── */
+.rf-solde-row { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+.rf-solde-box { flex: 1; min-width: 130px; border-radius: 12px; padding: 14px 16px; text-align: center; }
+.rf-solde-box .val { font-size: 1.7rem; font-weight: 700; line-height: 1.1; }
+.rf-solde-box .lbl { font-size: .76rem; margin-top: 3px; }
+.rf-solde-dispo  { background: #E8F5E9; border: 1px solid #A5D6A7; }
+.rf-solde-dispo  .val { color: #2E7D32; } .rf-solde-dispo  .lbl { color: #388E3C; }
+.rf-solde-pris   { background: #FFF3E0; border: 1px solid #FFCC80; }
+.rf-solde-pris   .val { color: #E65100; } .rf-solde-pris   .lbl { color: #F57C00; }
+.rf-solde-quota  { background: #F5F5F5; border: 1px solid #DDD; }
+.rf-solde-quota  .val { color: #555;    } .rf-solde-quota  .lbl { color: #777;    }
+
+/* ── Notice ── */
+.rf-notice {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: linear-gradient(135deg, #E3F2FD, #E8EAF6);
+  border-radius: 14px; padding: 16px 20px; margin-bottom: 28px;
+}
+.rf-notice-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, #1565C0, #283593);
+  display: flex; align-items: center; justify-content: center;
+}
+.rf-notice-icon svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; }
+.rf-notice-text { font-size: .85rem; color: #1A237E; line-height: 1.5; }
+.rf-notice-text strong { display: block; font-size: .73rem; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 2px; color: #283593; font-weight: 700; }
+
+/* ── Section label ── */
+.rf-section-label {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; color: #9E9E9E; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rf-section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, #E0E0E0, transparent); }
+
+/* ── Type cards ── */
+.rf-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+.rf-type-card {
+  position: relative; border: 2px solid #E8E8E8; border-radius: 14px;
+  padding: 18px 14px 14px; cursor: pointer; background: #FAFAFA;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1); user-select: none;
+}
+.rf-type-card:hover { border-color: #90CAF9; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(21,101,192,.12); background: #fff; }
+.rf-type-card.selected { border-color: #1565C0; background: linear-gradient(145deg, #E3F2FD, #BBDEFB); box-shadow: 0 6px 20px rgba(21,101,192,.18); transform: translateY(-2px); }
+.rf-type-card.selected::after { content: '✓'; position: absolute; top: 8px; right: 10px; width: 20px; height: 20px; background: #1565C0; border-radius: 50%; font-size: .62rem; color: #fff; display: flex; align-items: center; justify-content: center; line-height: 20px; text-align: center; }
+.rf-type-icon { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 1.35rem; }
+.rf-type-name { font-size: .83rem; font-weight: 700; color: #1C1C2E; margin-bottom: 4px; line-height: 1.3; }
+.rf-type-desc { font-size: .72rem; color: #9E9E9E; line-height: 1.4; }
+
+/* ── Dates ── */
+.rf-dates-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: end; margin-bottom: 8px; }
+.rf-date-field { display: flex; flex-direction: column; gap: 6px; }
+.rf-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #616161; display: flex; align-items: center; gap: 4px; }
+.rf-label .req { color: #E53935; }
+.rf-input-wrap { position: relative; }
+.rf-input-wrap svg.fi { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; stroke: #9E9E9E; fill: none; stroke-width: 2; stroke-linecap: round; pointer-events: none; transition: stroke .2s; }
+.rf-input-wrap input[type="date"] { width: 100%; padding: 11px 14px 11px 38px; border: 2px solid #E8E8E8; border-radius: 10px; font-size: .87rem; color: #1C1C2E; background: #FAFAFA; transition: all .2s; outline: none; box-sizing: border-box; }
+.rf-input-wrap input[type="date"]:focus { border-color: #1565C0; background: #fff; box-shadow: 0 0 0 3px rgba(21,101,192,.10); }
+.rf-input-wrap:focus-within svg.fi { stroke: #1565C0; }
+.rf-arrow { display: flex; align-items: center; justify-content: center; padding-bottom: 2px; }
+.rf-arrow svg { width: 18px; height: 18px; stroke: #BDBDBD; fill: none; stroke-width: 2; stroke-linecap: round; }
+.rf-duration {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #E3F2FD, #BBDEFB); border: 1px solid #90CAF9;
+  border-radius: 50px; padding: 5px 14px; font-size: .78rem; font-weight: 700; color: #0D47A1;
+  margin: 10px 0 24px; opacity: 0; transform: translateY(4px);
+  transition: all .3s cubic-bezier(.34,1.56,.64,1);
+}
+.rf-duration.show { opacity: 1; transform: translateY(0); }
+.rf-duration svg { width: 13px; height: 13px; stroke: #1565C0; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+
+/* ── Maternité info ── */
+.rf-mat-info { display:none; font-size:.82rem; color:#5D4037; margin-top:4px; background:#FFF8E1; border-radius:6px; padding:6px 10px; }
+
+/* ── Justificatif ── */
+.rf-justif { display: none; margin-bottom: 24px; }
+.rf-justif input[type="file"] { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 2px dashed #E8E8E8; border-radius: 10px; font-size: .85rem; background: #FAFAFA; cursor: pointer; }
+
+/* ── Motif ── */
+.rf-motif-wrap { margin-bottom: 28px; }
+.rf-motif-wrap textarea {
+  width: 100%; box-sizing: border-box; padding: 14px 16px;
+  border: 2px solid #E8E8E8; border-radius: 12px; font-size: .87rem; color: #1C1C2E;
+  background: #FAFAFA; resize: vertical; min-height: 110px; outline: none;
+  transition: all .2s; line-height: 1.6; font-family: inherit;
+}
+.rf-motif-wrap textarea:focus { border-color: #1565C0; background: #fff; box-shadow: 0 0 0 3px rgba(21,101,192,.10); }
+.rf-char-count { text-align: right; font-size: .72rem; color: #BDBDBD; margin-top: 4px; }
+
+/* ── Erreurs ── */
+.rf-field-error { font-size: .76rem; color: #E53935; margin-top: 4px; }
+.rf-error-global { background: #FFF3E0; border: 1px solid #FFCC80; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: .84rem; color: #BF360C; }
+
+/* ── Boutons ── */
+.rf-actions { display: flex; gap: 12px; padding-top: 20px; border-top: 1px solid #F0F0F0; }
+.rf-btn-submit {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 24px; background: linear-gradient(135deg, #1976D2, #0D47A1);
+  color: #fff; border: none; border-radius: 12px; font-size: .88rem; font-weight: 700;
+  cursor: pointer; transition: all .3s ease;
+}
+.rf-btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(13,71,161,.35); }
+.rf-btn-submit svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.rf-btn-cancel {
+  padding: 14px 22px; border: 2px solid #E0E0E0; border-radius: 12px;
+  background: transparent; color: #757575; font-size: .85rem; font-weight: 600;
+  text-decoration: none; display: flex; align-items: center; transition: all .2s;
+}
+.rf-btn-cancel:hover { border-color: #BDBDBD; color: #424242; background: #FAFAFA; }
+
+/* Masquer le select Django géré par JS */
+#id_type_conge { display: none; }
+
+@media (max-width: 520px) {
+  .rf-type-grid { grid-template-columns: 1fr; }
+  .rf-dates-row { grid-template-columns: 1fr; }
+  .rf-arrow { display: none; }
+}
+{% endblock %}
+
 {% block content %}
-<div class="ec-section" style="max-width: 680px;">
+<div class="rf-wrapper">
+<div class="ec-section">
   <div class="ec-section-header">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
     Nouvelle demande de congé
@@ -13,129 +138,174 @@
 
   <div class="ec-form-body">
 
-    <!-- Compteur de congés payés -->
-    <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-      <div style="flex:1; min-width:140px; background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px 16px; text-align:center;">
-        <div style="font-size:1.6rem; font-weight:700; color:#2E7D32;">{{ solde_conge }}</div>
-        <div style="font-size:0.78rem; color:#388E3C; margin-top:2px;">Jours disponibles {{ annee }}</div>
+    <!-- Solde congés -->
+    <div class="rf-solde-row">
+      <div class="rf-solde-box rf-solde-dispo">
+        <div class="val">{{ solde_conge }}</div>
+        <div class="lbl">Jours disponibles {{ annee }}</div>
       </div>
-      <div style="flex:1; min-width:140px; background:#fff3e0; border:1px solid #ffcc80; border-radius:8px; padding:12px 16px; text-align:center;">
-        <div style="font-size:1.6rem; font-weight:700; color:#E65100;">{{ jours_pris }}</div>
-        <div style="font-size:0.78rem; color:#F57C00; margin-top:2px;">Jours utilisés {{ annee }}</div>
+      <div class="rf-solde-box rf-solde-pris">
+        <div class="val">{{ jours_pris }}</div>
+        <div class="lbl">Jours utilisés {{ annee }}</div>
       </div>
-      <div style="flex:1; min-width:140px; background:#f5f5f5; border:1px solid #ddd; border-radius:8px; padding:12px 16px; text-align:center;">
-        <div style="font-size:1.6rem; font-weight:700; color:#555;">30</div>
-        <div style="font-size:0.78rem; color:#777; margin-top:2px;">Quota annuel total</div>
+      <div class="rf-solde-box rf-solde-quota">
+        <div class="val">30</div>
+        <div class="lbl">Quota annuel total</div>
       </div>
     </div>
+
+    <!-- Notice validation -->
+    <div class="rf-notice">
+      <div class="rf-notice-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="rf-notice-text">
+        <strong>Validation requise</strong>
+        Votre demande sera transmise à la DRH pour approbation avant d'être prise en compte.
+      </div>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="rf-error-global">{% for e in form.non_field_errors %}⚠ {{ e }}{% endfor %}</div>
+    {% endif %}
 
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
 
-      {% if form.non_field_errors %}
-      <div style="background:#fff3e0; border-left:4px solid #E65100; padding:10px 14px; border-radius:4px; margin-bottom:14px; color:#b71c1c; font-size:0.9rem;">
-        {% for error in form.non_field_errors %}
-          <div>⚠ {{ error }}</div>
-        {% endfor %}
-      </div>
-      {% endif %}
+      <!-- TYPE DE CONGÉ -->
+      <div class="rf-section-label">Type de congé</div>
+      {{ form.type_conge }}
+      {% if form.type_conge.errors %}<div class="rf-field-error">{{ form.type_conge.errors|join:", " }}</div>{% endif %}
 
-      <div class="ec-form-grid">
-
-        <!-- Type de congé -->
-        <div class="ec-form-group">
-          <label class="ec-form-label">{{ form.type_conge.label }}</label>
-          <select name="{{ form.type_conge.html_name }}" class="ec-form-control" required>
-            <option value="">-- Sélectionner --</option>
-            {% for val, lbl in form.type_conge.field.choices %}
-            <option value="{{ val }}" {% if form.type_conge.value == val %}selected{% endif %}>{{ lbl }}</option>
-            {% endfor %}
-          </select>
-          {% if form.type_conge.errors %}<div class="ec-form-error">{{ form.type_conge.errors|join:", " }}</div>{% endif %}
+      <div class="rf-type-grid" id="rf-type-grid">
+        <div class="rf-type-card" data-value="paye" tabindex="0" role="button">
+          <div class="rf-type-icon" style="background:linear-gradient(135deg,#E8F5E9,#A5D6A7);">🏖️</div>
+          <div class="rf-type-name">Congé annuel</div>
+          <div class="rf-type-desc">Jours de repos payés sur le quota annuel</div>
         </div>
-
-        <!-- Date début -->
-        <div class="ec-form-group">
-          <label class="ec-form-label">{{ form.date_debut.label }}</label>
-          <input type="date" name="{{ form.date_debut.html_name }}" id="ec_date_debut"
-                 value="{{ form.date_debut.value|default:'' }}"
-                 class="ec-form-control" required>
-          {% if form.date_debut.errors %}<div class="ec-form-error">{{ form.date_debut.errors|join:", " }}</div>{% endif %}
+        <div class="rf-type-card" data-value="maternite" tabindex="0" role="button">
+          <div class="rf-type-icon" style="background:linear-gradient(135deg,#FCE4EC,#F48FB1);">🤱</div>
+          <div class="rf-type-name">Congé maternité</div>
+          <div class="rf-type-desc">98 jours accordés par la loi</div>
         </div>
-
-        <!-- Date fin -->
-        <div class="ec-form-group">
-          <label class="ec-form-label">{{ form.date_fin.label }}</label>
-          <input type="date" name="{{ form.date_fin.html_name }}" id="ec_date_fin"
-                 value="{{ form.date_fin.value|default:'' }}"
-                 class="ec-form-control" required>
-          {% if form.date_fin.errors %}<div class="ec-form-error">{{ form.date_fin.errors|join:", " }}</div>{% endif %}
-          <small id="info-maternite" style="display:none; color:#5D4037; margin-top:4px; font-size:0.82rem;">
-            Congé maternité : 98 jours — date de retour calculée automatiquement.
-          </small>
+        <div class="rf-type-card" data-value="maladie" tabindex="0" role="button">
+          <div class="rf-type-icon" style="background:linear-gradient(135deg,#E3F2FD,#90CAF9);">🏥</div>
+          <div class="rf-type-name">Congé maladie</div>
+          <div class="rf-type-desc">Sur présentation d'un certificat médical</div>
         </div>
-
-        <!-- Motif (pleine largeur) -->
-        <div class="ec-form-group full">
-          <label class="ec-form-label">{{ form.motif.label }}</label>
-          <textarea name="{{ form.motif.html_name }}" class="ec-form-control" required
-                    placeholder="Décrivez le motif de votre demande...">{{ form.motif.value|default:'' }}</textarea>
-          {% if form.motif.errors %}<div class="ec-form-error">{{ form.motif.errors|join:", " }}</div>{% endif %}
-        </div>
-
-        <!-- Pièce justificative (congé maladie uniquement) -->
-        <div class="ec-form-group full" id="bloc-justificatif" style="display:none;">
-          <label class="ec-form-label">Pièce justificative (certificat médical) *</label>
-          <input type="file" name="{{ form.piece_justificative.html_name }}" class="ec-form-control" accept=".pdf,.jpg,.jpeg,.png">
-          {% if form.piece_justificative.errors %}<div class="ec-form-error">{{ form.piece_justificative.errors|join:", " }}</div>{% endif %}
-        </div>
-
       </div>
 
-      <script>
-        (function(){
-          var sel       = document.querySelector('[name="{{ form.type_conge.html_name }}"]');
-          var bloc      = document.getElementById('bloc-justificatif');
-          var infoMat   = document.getElementById('info-maternite');
-          var dateDebut = document.getElementById('ec_date_debut');
-          var dateFin   = document.getElementById('ec_date_fin');
+      <!-- PÉRIODE -->
+      <div class="rf-section-label">Période de congé</div>
+      <div class="rf-dates-row">
+        <div class="rf-date-field">
+          <label class="rf-label">Date de début <span class="req">*</span></label>
+          <div class="rf-input-wrap">
+            <svg class="fi" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <input type="date" name="{{ form.date_debut.html_name }}" id="rf_dd"
+                   value="{{ form.date_debut.value|default:'' }}" required>
+          </div>
+          {% if form.date_debut.errors %}<div class="rf-field-error">{{ form.date_debut.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="rf-arrow"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        <div class="rf-date-field">
+          <label class="rf-label">Date de fin <span class="req">*</span></label>
+          <div class="rf-input-wrap">
+            <svg class="fi" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <input type="date" name="{{ form.date_fin.html_name }}" id="rf_df"
+                   value="{{ form.date_fin.value|default:'' }}" required>
+          </div>
+          {% if form.date_fin.errors %}<div class="rf-field-error">{{ form.date_fin.errors|join:", " }}</div>{% endif %}
+          <small class="rf-mat-info" id="rf-mat-info">Congé maternité : 98 jours — date de retour calculée automatiquement.</small>
+        </div>
+      </div>
+      <div class="rf-duration" id="rf-duration">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="rf-dur-text"></span>
+      </div>
 
-          function toggleJustificatif(){
-            bloc.style.display = sel.value === 'maladie' ? '' : 'none';
-          }
+      <!-- JUSTIFICATIF (maladie) -->
+      <div class="rf-justif" id="rf-justif">
+        <div class="rf-section-label">Pièce justificative</div>
+        <label class="rf-label" style="margin-bottom:8px;display:block;">Certificat médical <span class="req">*</span></label>
+        <input type="file" name="{{ form.piece_justificative.html_name }}" accept=".pdf,.jpg,.jpeg,.png">
+        {% if form.piece_justificative.errors %}<div class="rf-field-error">{{ form.piece_justificative.errors|join:", " }}</div>{% endif %}
+      </div>
 
-          function calcMaternite(){
-            if (sel.value === 'maternite') {
-              infoMat.style.display = '';
-              dateFin.readOnly = true;
-              dateFin.style.background = '#f5f5f5';
-              if (dateDebut.value) {
-                var d = new Date(dateDebut.value);
-                d.setDate(d.getDate() + 97); // 98 jours inclus
-                dateFin.value = d.toISOString().slice(0, 10);
-              }
-            } else {
-              infoMat.style.display = 'none';
-              dateFin.readOnly = false;
-              dateFin.style.background = '';
-            }
-          }
+      <!-- MOTIF -->
+      <div class="rf-section-label">Motif</div>
+      <div class="rf-motif-wrap">
+        <label class="rf-label" style="margin-bottom:8px;display:block;">Description <span class="req">*</span></label>
+        <textarea name="{{ form.motif.html_name }}" id="rf-motif" required
+                  placeholder="Décrivez le motif de votre demande...">{{ form.motif.value|default:'' }}</textarea>
+        <div class="rf-char-count"><span id="rf-cc">0</span> caractères</div>
+        {% if form.motif.errors %}<div class="rf-field-error">{{ form.motif.errors|join:", " }}</div>{% endif %}
+      </div>
 
-          sel.addEventListener('change', function(){ toggleJustificatif(); calcMaternite(); });
-          dateDebut.addEventListener('change', calcMaternite);
-          toggleJustificatif();
-          calcMaternite();
-        })();
-      </script>
-
-      <div class="ec-form-actions">
-        <button type="submit" class="ec-btn-primary">
+      <!-- ACTIONS -->
+      <div class="rf-actions">
+        <button type="submit" class="rf-btn-submit">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           Soumettre ma demande
         </button>
-        <a href="{% url 'sygepe:liste_conges' %}" class="ec-btn-outline">Annuler</a>
+        <a href="{% url 'sygepe:liste_conges' %}" class="rf-btn-cancel">Annuler</a>
       </div>
     </form>
   </div>
 </div>
+</div>
+
+<script>
+(function () {
+  const sel   = document.getElementById('id_type_conge');
+  const cards = document.querySelectorAll('.rf-type-card');
+  const dd    = document.getElementById('rf_dd');
+  const df    = document.getElementById('rf_df');
+  const dur   = document.getElementById('rf-duration');
+  const txt   = document.getElementById('rf-dur-text');
+  const justif = document.getElementById('rf-justif');
+  const matInfo = document.getElementById('rf-mat-info');
+
+  function pick(val) {
+    sel.value = val;
+    cards.forEach(c => c.classList.toggle('selected', c.dataset.value === val));
+    justif.style.display = val === 'maladie' ? 'block' : 'none';
+    if (val === 'maternite') {
+      matInfo.style.display = 'block';
+      df.readOnly = true; df.style.background = '#f5f5f5';
+      calcMaternite();
+    } else {
+      matInfo.style.display = 'none';
+      df.readOnly = false; df.style.background = '';
+    }
+  }
+  if (sel.value) pick(sel.value);
+  cards.forEach(c => {
+    c.addEventListener('click', () => pick(c.dataset.value));
+    c.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(c.dataset.value); } });
+  });
+
+  function calcMaternite() {
+    if (sel.value === 'maternite' && dd.value) {
+      const d = new Date(dd.value); d.setDate(d.getDate() + 97);
+      df.value = d.toISOString().slice(0, 10);
+      majDur();
+    }
+  }
+
+  function majDur() {
+    if (!dd.value || !df.value) { dur.classList.remove('show'); return; }
+    const j = Math.round((new Date(df.value) - new Date(dd.value)) / 86400000) + 1;
+    if (j > 0) { txt.textContent = j === 1 ? '1 jour' : j + ' jours'; dur.classList.add('show'); }
+    else dur.classList.remove('show');
+  }
+  dd.addEventListener('change', () => { calcMaternite(); majDur(); });
+  df.addEventListener('change', majDur);
+  majDur();
+
+  const motif = document.getElementById('rf-motif');
+  const cc    = document.getElementById('rf-cc');
+  if (motif && cc) { motif.addEventListener('input', () => cc.textContent = motif.value.length); cc.textContent = motif.value.length; }
+})();
+</script>
 {% endblock %}

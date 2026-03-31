@@ -12,7 +12,7 @@ from datetime import date, datetime as dt
 from django.conf import settings
 from django.http import HttpResponse
 
-from ..models import Conge, Permission, Presence
+from ..models import Absence, Conge, Permission, Presence
 from ..services.excel import construire_classeur, wb_vers_response
 from .decorators import rh_requis
 
@@ -169,3 +169,49 @@ def export_excel_permissions(request):
 
     wb = construire_classeur('Permissions', headers, rows)
     return wb_vers_response(wb, f'permissions_{annee}.xlsx')
+
+
+@rh_requis
+def export_excel_absences(request):
+    """Exporte les absences spéciales au format Excel (.xlsx)."""
+    annee = _param_int(request, 'annee', date.today().year)
+
+    qs = (
+        Absence.objects
+        .filter(date_debut__year=annee)
+        .values_list(
+            'employe__matricule', 'employe__nom', 'employe__prenom',
+            'type_absence', 'date_debut', 'date_fin', 'statut', 'motif',
+        )
+        .order_by('-date_demande')
+    )
+
+    guard = _trop_de_lignes(qs.count(), f'absences {annee}')
+    if guard:
+        return guard
+
+    TYPE_ABSENCE = {
+        'mission_pro':       'Mission professionnelle',
+        'formation_interne': 'Formation interne',
+        'atelier':           'Atelier',
+    }
+
+    headers = ['Matricule', 'Nom', 'Prénoms', 'Type absence',
+               'Date début', 'Date fin', 'Nb jours', 'Statut', 'Motif']
+    rows = [
+        [
+            mat,
+            nom.upper(),
+            prenom,
+            TYPE_ABSENCE.get(type_a, type_a),
+            dd.strftime('%d/%m/%Y'),
+            df.strftime('%d/%m/%Y'),
+            (df - dd).days + 1,
+            STATUT_RH.get(statut, statut),
+            (motif or '')[:100],
+        ]
+        for mat, nom, prenom, type_a, dd, df, statut, motif in qs.iterator(chunk_size=500)
+    ]
+
+    wb = construire_classeur('Absences', headers, rows)
+    return wb_vers_response(wb, f'absences_{annee}.xlsx')

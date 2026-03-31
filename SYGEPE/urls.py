@@ -57,6 +57,7 @@ urlpatterns = [
     path('rapports/presences/', views.rapport_presences, name='rapport_presences'),
     path('rapports/conges/', views.rapport_conges, name='rapport_conges'),
     path('rapports/permissions/', views.rapport_permissions, name='rapport_permissions'),
+    path('rapports/absences/',   views.rapport_absences,   name='rapport_absences'),
     path('rapports/rh-complet/', views.rapport_rh_complet, name='rapport_rh_complet'),
 
     # API
@@ -70,6 +71,7 @@ urlpatterns = [
     path('exports/presences/', views.export_excel_presences,  name='export_excel_presences'),
     path('exports/conges/',    views.export_excel_conges,     name='export_excel_conges'),
     path('exports/permissions/',views.export_excel_permissions,name='export_excel_permissions'),
+    path('exports/absences/',   views.export_excel_absences,   name='export_excel_absences'),
 
     # Historique RH
     path('historique/', views.historique_actions, name='historique_actions'),

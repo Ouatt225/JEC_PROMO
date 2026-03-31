@@ -509,7 +509,7 @@
       </div>
     </div>
 
-    {% comment %}Lien retour tableau de bord RH pour les staff (is_staff = RH/DAF/Admin){% endcomment %}
+    {% comment %}Lien retour tableau de bord pour les staff et les responsables{% endcomment %}
     {% if request.user.is_staff or request.user.is_superuser %}
     <a href="{% url 'sygepe:dashboard' %}"
        style="display:flex; align-items:center; gap:10px; margin:10px 12px 0;
@@ -520,6 +520,17 @@
         <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
       </svg>
       Tableau de bord RH
+    </a>
+    {% elif is_responsable_user %}
+    <a href="{% url 'sygepe:dashboard' %}"
+       style="display:flex; align-items:center; gap:10px; margin:10px 12px 0;
+              padding:9px 14px; border-radius:8px; font-size:0.82rem; font-weight:600;
+              background:rgba(232,130,42,0.15); color:#E8822A; text-decoration:none;">
+      <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#E8822A;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Tableau de bord Responsable
     </a>
     {% endif %}
 

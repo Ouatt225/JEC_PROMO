@@ -42,17 +42,24 @@
           <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.motif }}</td>
           <td><span class="badge-status badge-{{ a.statut }}">{{ a.get_statut_display }}</span></td>
           <td>
-            {% if a.pk in ids_validables %}
-              <div style="display:flex;gap:6px;">
-                <a href="{% url 'sygepe:valider_absence' a.pk %}"
-                   style="display:flex;align-items:center;gap:5px;padding:6px 12px;
-                          border-radius:6px;border:1.5px solid #10B981;background:#ECFDF5;
-                          color:#065F46;font-weight:600;font-size:0.78rem;text-decoration:none;">
-                  ✔ Traiter
-                </a>
-              </div>
+            {% if a.pk in peut_premier_ids %}
+              <a href="{% url 'sygepe:valider_absence' a.pk %}"
+                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;
+                        border-radius:6px;border:1.5px solid #F59E0B;background:#FFFBEB;
+                        color:#92400E;font-weight:600;font-size:0.78rem;text-decoration:none;">
+                ✔ Valider (étape 1)
+              </a>
+            {% elif a.pk in peut_final_ids %}
+              <a href="{% url 'sygepe:valider_absence' a.pk %}"
+                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;
+                        border-radius:6px;border:1.5px solid #10B981;background:#ECFDF5;
+                        color:#065F46;font-weight:600;font-size:0.78rem;text-decoration:none;">
+                ✔ Valider (étape 2)
+              </a>
             {% elif a.statut == 'en_attente' %}
-              <span style="color:#d97706;font-size:0.8rem;">⏳ En attente DRH</span>
+              <span style="color:#d97706;font-size:0.8rem;">⏳ En attente responsable</span>
+            {% elif a.statut == 'valide_responsable' %}
+              <span style="color:#1565C0;font-size:0.8rem;">⏳ En attente DRH</span>
             {% elif a.statut == 'approuve' %}
               <span style="color:#065F46;font-size:0.8rem;font-weight:600;">✔ Approuvé</span>
             {% elif a.statut == 'refuse' %}

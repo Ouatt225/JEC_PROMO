@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.utils.html import format_html
 from django import forms
 
-from .models import Departement, Employe, Presence, Conge, Permission, ActionLog
+from .models import Absence, Departement, Employe, Presence, Conge, Permission, ActionLog
 
 # ─── Personnalisation du site admin ───────────────────────────────────────────
 admin.site.site_header  = "SYGEPE — Administration"
@@ -423,6 +423,15 @@ class PermissionAdmin(admin.ModelAdmin):
     search_fields = ('employe__nom', 'employe__prenom')
     date_hierarchy = 'date_debut'
 
+
+
+@admin.register(Absence)
+class AbsenceAdmin(admin.ModelAdmin):
+    list_display  = ('employe', 'type_absence', 'date_debut', 'date_fin', 'statut', 'date_demande')
+    list_filter   = ('statut', 'type_absence')
+    search_fields = ('employe__nom', 'employe__prenom', 'employe__matricule')
+    date_hierarchy = 'date_debut'
+    readonly_fields = ('date_demande', 'date_validation', 'valideur')
 
 
 @admin.register(ActionLog)

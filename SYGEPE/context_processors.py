@@ -24,12 +24,16 @@ def roles_utilisateur(request):
 
         conge_qs = Conge.objects.filter(statut='en_attente')
         perm_qs  = Permission.objects.filter(statut='en_attente')
-        abs_qs   = Absence.objects.filter(statut='en_attente')
+        if dept:
+            # Responsable : absences en attente de sa première validation
+            abs_qs = Absence.objects.filter(statut='en_attente', employe__departement=dept)
+        else:
+            # RH/Admin : absences transmises par les responsables (étape 2) + sans responsable
+            abs_qs = Absence.objects.filter(statut__in=['en_attente', 'valide_responsable'])
 
         if dept:
             conge_qs = conge_qs.filter(employe__departement=dept)
             perm_qs  = perm_qs.filter(employe__departement=dept)
-            abs_qs   = abs_qs.filter(employe__departement=dept)
 
         conge_count = conge_qs.count()
         perm_count  = perm_qs.count()

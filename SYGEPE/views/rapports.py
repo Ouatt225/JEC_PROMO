@@ -13,7 +13,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from ..models import Conge, Employe, Permission, Presence
+from ..models import Absence, Conge, Employe, Permission, Presence
 from ..services.pdf import make_data_table, make_section_header, pdf_styles
 from .decorators import get_departement_responsable, rh_ou_responsable_requis
 
@@ -250,6 +250,55 @@ def rapport_permissions(request):
         elems.append(make_data_table(header, rows, cw, s))
     else:
         elems.append(Paragraph("Aucune demande de permission pour cette période.", s['td']))
+
+    return _finaliser_pdf(doc, elems, s, response)
+
+
+@rh_ou_responsable_requis
+def rapport_absences(request):
+    """PDF : Rapport des absences spéciales du mois."""
+    today = date.today()
+    mois  = int(request.GET.get('mois',  today.month))
+    annee = int(request.GET.get('annee', today.year))
+
+    absences = (
+        Absence.objects
+        .filter(date_demande__year=annee, date_demande__month=mois)
+        .select_related('employe')
+        .order_by('employe__nom', 'date_debut')
+    )
+    dept = get_departement_responsable(request.user)
+    if dept:
+        absences = absences.filter(employe__departement=dept)
+
+    nom_mois = dt(annee, mois, 1).strftime('%B %Y')
+    response, doc, PAGE_W, s, elems = _init_pdf_rapport(
+        f'rapport_absences_{annee}_{mois:02d}.pdf',
+        'RAPPORT DES ABSENCES SPÉCIALES',
+        nom_mois.upper(),
+    )
+    elems.append(make_section_header("LISTE DES DEMANDES D'ABSENCE", PAGE_W, s))
+
+    header = [Paragraph(h, s['th']) for h in
+              ['Matricule', 'Nom & Prénoms', 'Type', 'Date début', 'Date fin', 'Durée', 'Motif', 'Statut']]
+    cw   = [2.1*cm, 4.2*cm, 3.0*cm, 2.2*cm, 2.2*cm, 1.4*cm, 3.5*cm, 2.0*cm]
+    rows = [
+        [
+            Paragraph(a.employe.matricule,                    s['tdc']),
+            Paragraph(a.employe.get_full_name(),              s['td']),
+            Paragraph(a.get_type_absence_display(),           s['td']),
+            Paragraph(a.date_debut.strftime('%d/%m/%Y'),      s['tdc']),
+            Paragraph(a.date_fin.strftime('%d/%m/%Y'),        s['tdc']),
+            Paragraph(f"{(a.date_fin - a.date_debut).days + 1} j", s['tdc']),
+            Paragraph((a.motif[:30] + ('…' if len(a.motif) > 30 else '')), s['td']),
+            Paragraph(a.get_statut_display(),                 s['tdc']),
+        ]
+        for a in absences
+    ]
+    if rows:
+        elems.append(make_data_table(header, rows, cw, s))
+    else:
+        elems.append(Paragraph("Aucune demande d'absence pour cette période.", s['td']))
 
     return _finaliser_pdf(doc, elems, s, response)
 

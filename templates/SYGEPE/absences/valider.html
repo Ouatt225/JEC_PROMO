@@ -2,10 +2,16 @@
 
 {% block title %}Valider l'absence{% endblock %}
 {% block page_title %}Validation d'absence{% endblock %}
-{% block page_subtitle %}Approuver ou rejeter la demande{% endblock %}
+{% block page_subtitle %}{% if etape == 1 %}Étape 1 — Validation du responsable{% else %}Étape 2 — Validation finale DRH{% endif %}{% endblock %}
 
 {% block content %}
 <div class="form-card" style="max-width:680px;margin:0 auto;">
+
+  {% if etape == 1 %}
+  <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.88rem;color:#92400E;">
+    ℹ️ En validant, la demande sera transmise à la DRH pour approbation finale.
+  </div>
+  {% endif %}
 
   <!-- En-tête employé -->
   <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
@@ -18,6 +24,10 @@
       <div style="font-weight:700;font-size:1.05rem;">{{ absence.employe.get_full_name }}</div>
       <div style="font-size:0.85rem;color:#6b7280;">{{ absence.employe.poste }} — {{ absence.employe.departement|default:"—" }}</div>
     </div>
+    <span style="margin-left:auto;background:#FEF3C7;color:#92400E;
+                 padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;">
+      {% if etape == 1 %}En attente{% else %}Validé responsable{% endif %}
+    </span>
   </div>
 
   <!-- Récapitulatif -->
@@ -30,43 +40,32 @@
       <div><strong>Demande le :</strong> {{ absence.date_demande|date:"d/m/Y H:i" }}</div>
     </div>
     <div style="margin-top:12px;"><strong>Motif :</strong> {{ absence.motif }}</div>
+    {% if etape == 2 and absence.valideur_responsable %}
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:0.82rem;color:#1565C0;">
+      ✔ Validé par le responsable : {{ absence.valideur_responsable.get_full_name }}
+      {% if absence.date_validation_responsable %}({{ absence.date_validation_responsable|date:"d/m/Y" }}){% endif %}
+    </div>
+    {% endif %}
   </div>
 
-  <form method="post">
+  <form method="post" id="form-validation-absence">
     {% csrf_token %}
-    {{ form.statut }}
     <div class="form-grid single">
+      <div class="form-group">
+        <label>Décision *</label>
+        {{ form.statut }}
+        {% if form.statut.errors %}<small style="color:#dc2626;">{{ form.statut.errors.0 }}</small>{% endif %}
+      </div>
       <div class="form-group">
         <label>Commentaire <span style="color:#dc2626;font-size:0.82rem;">* obligatoire en cas de refus</span></label>
         {{ form.commentaire_valideur }}
         {% if form.commentaire_valideur.errors %}<small style="color:#dc2626;">{{ form.commentaire_valideur.errors.0 }}</small>{% endif %}
       </div>
     </div>
-    <div class="form-actions" style="justify-content:flex-end;">
-      <button type="button" onclick="decider('approuve')"
-              style="padding:10px 20px;border-radius:8px;border:1.5px solid #10B981;background:#ECFDF5;
-                     color:#065F46;font-weight:600;cursor:pointer;">
-        ✔ Approuver
-      </button>
-      <button type="button" onclick="decider('refuse')"
-              style="padding:10px 20px;border-radius:8px;border:1.5px solid #EF4444;background:#FEF2F2;
-                     color:#991B1B;font-weight:600;cursor:pointer;">
-        ✘ Rejeter
-      </button>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">✔ Confirmer la décision</button>
       <a href="{% url 'sygepe:liste_absences' %}" class="btn btn-outline">Annuler</a>
     </div>
   </form>
 </div>
-
-<script>
-function decider(decision) {
-  const commentaire = document.querySelector('[name="commentaire_valideur"]').value.trim();
-  if (decision === 'refuse' && !commentaire) {
-    alert('Un motif de rejet est obligatoire.');
-    return;
-  }
-  document.querySelector('[name="statut"]').value = decision;
-  document.querySelector('form').submit();
-}
-</script>
 {% endblock %}
