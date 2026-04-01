@@ -7,8 +7,19 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 from django_ratelimit.decorators import ratelimit
+from django_ratelimit.exceptions import Ratelimited
 
 from .decorators import is_responsable, is_rh
+
+
+# Helper dédié uniquement à la vérification du rate limit (block=True).
+# Appelé explicitement dans login_view avec try/except Ratelimited,
+# ce qui permet de :
+#   1. bloquer au niveau du décorateur (avant tout code de la vue)
+#   2. tout en affichant un message d'erreur personnalisé sur le formulaire.
+@ratelimit(key='ip', rate=settings.LOGIN_RATE_LIMIT, method='POST', block=True)
+def _check_login_rate(request):
+    pass
 
 
 def csrf_failure(request, reason=""):
@@ -27,12 +38,15 @@ def root_view(request):
     return redirect('sygepe:login')
 
 
-@ratelimit(key='ip', rate=settings.LOGIN_RATE_LIMIT, method='POST', block=False)
+@never_cache
 def login_view(request):
     """Affiche et traite le formulaire de connexion.
 
     Accès : public (non authentifié).
-    Rate-limit : LOGIN_RATE_LIMIT tentatives par minute et par IP (django-ratelimit).
+    Rate-limit : LOGIN_RATE_LIMIT tentatives par minute et par IP (django-ratelimit,
+    block=True). Le blocage est imposé au niveau du décorateur de _check_login_rate,
+    avant tout traitement des identifiants. L'exception Ratelimited est catchée ici
+    pour afficher un message d'erreur lisible sur le formulaire.
     Redirige vers `next` si fourni, sinon vers le dashboard (RH/responsable)
     ou le profil employé selon le rôle.
     """
@@ -44,8 +58,11 @@ def login_view(request):
         logout(request)
 
     if request.method == 'POST':
-        # Vérifier la limite de tentatives avant de traiter les identifiants
-        if getattr(request, 'limited', False):
+        # Blocage brute-force : lève Ratelimited si l'IP dépasse la limite.
+        # Avec block=True, aucun code ci-dessous n'est atteint en cas de dépassement.
+        try:
+            _check_login_rate(request)
+        except Ratelimited:
             messages.error(
                 request,
                 "Trop de tentatives de connexion. Veuillez patienter 1 minute avant de réessayer.",
