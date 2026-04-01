@@ -16,6 +16,17 @@
   function loadDismissed()  { try { return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]')); } catch { return new Set(); } }
   function saveDismissed(s) { localStorage.setItem(DISMISSED_KEY, JSON.stringify([...s])); }
 
+  /* Échappe les caractères HTML spéciaux avant toute injection dans innerHTML.
+     Empêche XSS si un nom d'employé ou un message contient du HTML/JS. */
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+
   function updateBadge(n) {
     const b = document.getElementById('notifBadge');
     if (!b) return;
@@ -30,9 +41,9 @@
     el.innerHTML = list.map((n, i) => `
       <div class="notif-item">
         <div class="notif-item-icon">${n.urgence === 'danger' ? '🔴' : '🟡'}</div>
-        <div class="notif-item-titre">${n.titre}</div>
+        <div class="notif-item-titre">${esc(n.titre)}</div>
         <button class="notif-item-del" onclick="window._sygepeDelNotif(${i})">×</button>
-        <div class="notif-item-body">${(n.message || '').replace(' — ', '<br>').replace(' du ', '<br>Du ').replace(' au ', ' → ')}</div>
+        <div class="notif-item-body">${esc(n.message).replace(' \u2014 ', '<br>').replace(' du ', '<br>Du ').replace(' au ', ' \u2192 ')}</div>
       </div>`).join('');
   }
 
@@ -54,8 +65,8 @@
       t.innerHTML = `
         <div class="sygepe-toast-icon">${n.urgence === 'danger' ? '🔴' : '🟡'}</div>
         <div class="sygepe-toast-body">
-          <div class="sygepe-toast-titre">${n.titre}</div>
-          <div class="sygepe-toast-msg">${n.message}</div>
+          <div class="sygepe-toast-titre">${esc(n.titre)}</div>
+          <div class="sygepe-toast-msg">${esc(n.message)}</div>
         </div>
         <button class="sygepe-toast-close" onclick="this.closest('.sygepe-toast').remove()">×</button>`;
       container.appendChild(t);
