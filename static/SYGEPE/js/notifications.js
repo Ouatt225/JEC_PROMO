@@ -30,11 +30,9 @@
     el.innerHTML = list.map((n, i) => `
       <div class="notif-item">
         <div class="notif-item-icon">${n.urgence === 'danger' ? '🔴' : '🟡'}</div>
-        <div class="notif-item-body">
-          <div class="notif-item-titre">${n.titre}</div>
-          <div class="notif-item-msg">${n.message}</div>
-        </div>
+        <div class="notif-item-titre">${n.titre}</div>
         <button class="notif-item-del" onclick="window._sygepeDelNotif(${i})">×</button>
+        <div class="notif-item-body">${(n.message || '').replace(' — ', '<br>').replace(' du ', '<br>Du ').replace(' au ', ' → ')}</div>
       </div>`).join('');
   }
 
@@ -115,10 +113,26 @@
   const dropdown   = document.getElementById('notifDropdown');
   const clearBtn   = document.getElementById('notifClearAll');
 
+  function positionDropdown() {
+    const rect  = bellBtn.getBoundingClientRect();
+    const right = Math.max(4, window.innerWidth - rect.right);
+    dropdown.style.top   = (rect.bottom + 10) + 'px';
+    dropdown.style.right = right + 'px';
+    dropdown.style.left  = 'auto';
+  }
+
   if (bellBtn && dropdown) {
     bellBtn.addEventListener('click', e => {
       e.stopPropagation();
-      dropdown.classList.toggle('open');
+      if (dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+      } else {
+        positionDropdown();
+        dropdown.classList.add('open');
+      }
+    });
+    window.addEventListener('resize', () => {
+      if (dropdown.classList.contains('open')) positionDropdown();
     });
     document.addEventListener('click', () => dropdown.classList.remove('open'));
     dropdown.addEventListener('click', e => e.stopPropagation());

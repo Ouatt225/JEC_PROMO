@@ -38,9 +38,12 @@
 }
 
 /* ── Dropdown ── */
+/* position: fixed évite d'être clipé par le contexte de rendu
+   du topbar sticky (z-index: 900 crée un stacking context isolé).
+   La position top/right est calculée dynamiquement par notifications.js. */
 .notif-dropdown {
-  display: none; position: absolute; top: calc(100% + 10px); right: 0;
-  width: 340px; background: white;
+  display: none; position: fixed;
+  width: 340px; max-width: calc(100vw - 24px); background: white;
   border-radius: 16px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
   z-index: 9000; overflow: hidden;
 }
@@ -62,19 +65,33 @@
 .notif-dropdown-header button:hover { background: #f5f0ea; }
 .notif-dropdown-list { max-height: 340px; overflow-y: auto; }
 .notif-item {
-  display: flex; align-items: flex-start; gap: 12px;
+  display: grid;
+  grid-template-columns: 22px 1fr 24px;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
   padding: 12px 16px; border-bottom: 1px solid #f5f0ea;
   transition: background 0.15s;
 }
 .notif-item:hover { background: #faf7f3; }
-.notif-item-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
-.notif-item-body { flex: 1; min-width: 0; }
-.notif-item-titre { font-weight: 700; font-size: 0.82rem; margin-bottom: 2px; }
-.notif-item-msg   { font-size: 0.78rem; color: var(--notif-muted); line-height: 1.4; }
+.notif-item-icon {
+  grid-column: 1; grid-row: 1 / 3;
+  font-size: 1.2rem; align-self: start; padding-top: 1px;
+}
+.notif-item-titre {
+  grid-column: 2; grid-row: 1;
+  font-weight: 700; font-size: 0.82rem; margin-bottom: 2px;
+  word-break: break-word;
+}
+.notif-item-body {
+  grid-column: 2; grid-row: 2;
+  font-size: 0.78rem; color: var(--notif-muted); line-height: 1.5;
+  word-break: break-word; overflow-wrap: break-word;
+}
 .notif-item-del {
+  grid-column: 3; grid-row: 1;
   background: none; border: none; color: #ccc;
-  font-size: 1rem; cursor: pointer; padding: 0 4px;
-  flex-shrink: 0; line-height: 1; transition: color 0.15s;
+  font-size: 1rem; cursor: pointer; padding: 0;
+  line-height: 1; transition: color 0.15s; align-self: start;
 }
 .notif-item-del:hover { color: var(--notif-del-hover); }
 .notif-empty {
@@ -117,5 +134,5 @@
 /* ── Responsive ── */
 @media (max-width: 480px) {
   #sygepe-notif-container { bottom: 12px; right: 12px; max-width: calc(100vw - 24px); }
-  .notif-dropdown { width: calc(100vw - 24px); right: -60px; }
+  /* La position du dropdown est gérée par JS (getBoundingClientRect) */
 }

@@ -159,6 +159,29 @@ def dashboard(request):
     dernieres_permissions = dernieres_permissions[:5]
     dernieres_absences    = dernieres_absences[:5]
 
+    # ── Congés imminents (approuvés, J+1 ou J+7) — toujours frais ─────────────
+    veille = today + timedelta(days=1)
+    j7     = today + timedelta(days=7)
+    cong_imm_qs = (
+        Conge.objects
+        .filter(statut='approuve', date_debut__in=[veille, j7])
+        .select_related('employe')
+        .order_by('date_debut', 'employe__nom')
+    )
+    if dept:
+        cong_imm_qs = cong_imm_qs.filter(employe__departement=dept)
+    conges_imminents = [
+        {
+            'employe':    c.employe.get_full_name(),
+            'type':       c.get_type_conge_display(),
+            'date_debut': c.date_debut,
+            'date_fin':   c.date_fin,
+            'jours':      (c.date_fin - c.date_debut).days + 1,
+            'urgence':    'demain' if c.date_debut == veille else '7j',
+        }
+        for c in cong_imm_qs
+    ]
+
     context = {
         **stats,
         'alertes_anniversaires': alertes_anniversaires,
@@ -166,6 +189,7 @@ def dashboard(request):
         'derniers_conges': derniers_conges,
         'dernieres_permissions': dernieres_permissions,
         'dernieres_absences': dernieres_absences,
+        'conges_imminents': conges_imminents,
         'today': today,
         'departement_filtre': dept,
     }

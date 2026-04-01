@@ -133,12 +133,25 @@
 </div>
 
 <!-- Alertes RH -->
-{% if alertes_anniversaires or conges_en_attente > 3 or permissions_en_attente > 3 or absences_en_attente > 3 %}
+{% if conges_imminents or alertes_anniversaires or conges_en_attente > 3 or permissions_en_attente > 3 or absences_en_attente > 3 %}
 <div class="table-card" style="margin-bottom: 24px; border-left: 4px solid #f59e0b;">
   <div class="table-card-header">
     <h3 style="color:#92400e;">⚠️ Alertes RH</h3>
   </div>
   <div style="padding: 8px 16px 16px; display: flex; flex-direction: column; gap: 8px;">
+
+    {% for c in conges_imminents %}
+    <div style="background:#dcfce7; border-radius:8px; padding:10px 14px; color:#166534; font-size:.88rem;">
+      🏖️ <strong>{{ c.employe }}</strong> — {{ c.type }} :
+      {% if c.urgence == 'demain' %}
+        commence <strong>demain</strong>
+      {% else %}
+        commence dans <strong>7 jours</strong>
+      {% endif %}
+      ({{ c.date_debut|date:"d/m" }} → {{ c.date_fin|date:"d/m" }}, {{ c.jours }} j)
+    </div>
+    {% endfor %}
+
     {% if conges_en_attente > 3 %}
     <div style="background:#fff3cd; border-radius:8px; padding:10px 14px; color:#856404; font-size:.88rem;">
       🏖️ <strong>{{ conges_en_attente }} congés</strong> sont en attente de validation — traitement urgent recommandé.
